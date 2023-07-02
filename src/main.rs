@@ -4,9 +4,6 @@ use std::env;
 use std::process;
 
 fn main() {
-    // define the allowed modules
-    const MODULES: [&str; 5] = ["account", "tx", "blockchain", "miner", "node"];
-
     // Collect command-line arguments to a vector
     let argv: Vec<String> = env::args().collect();
 
@@ -20,14 +17,38 @@ fn main() {
     }
 
     // collect the current module from arguments
-    let module: &String = &argv[1];
+    let module: &str = &argv[1];
 
-    // compare current module with permitted modules
-    if !MODULES.iter().any(|e| e == module) {
-        // throw error message
-        eprintln!("bitcoin-rs: {} is not a module.", module);
+    // perform pattern matching on the module for routin
+    match module {
+        "help" => {
+            // throw help message
+            println!("Help message comes here!");
 
-        // exit the program
-        process::exit(0);
+            // exit the program
+            process::exit(0);
+        }
+        "account" => {
+            // call the account module
+        }
+        "tx" => {
+            // call the tx module
+        }
+        "blockchain" => {
+            // call the blockchain module
+        }
+        "miner" => {
+            // call the miner module
+        }
+        "node" => {
+            // call the node module
+        }
+        // matching for wildcard (important when using match for `&str`)
+        _ => {
+            // throw invalid module name
+            eprintln!("Invalid module name");
+
+            // throw help message
+        }
     }
 }
