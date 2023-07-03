@@ -3,8 +3,8 @@ use std::env;
 // interacting with current process
 use std::process;
 
-mod structs;
-use structs::{Account, Blockchain, Miner, Node, Transaction};
+mod routes;
+use routes::{Account, Blockchain, Miner, Node, Transaction};
 
 fn main() {
     // Collect command-line arguments to a vector
