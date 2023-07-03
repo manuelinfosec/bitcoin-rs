@@ -40,7 +40,7 @@ fn main() {
             // check if an argument exists for methods
             if let Some(method) = argv.get(2) {
                 // perform pattern matching for methods
-                // match constraints is the sliced version of the `String` which is `&str`
+                // value (for match) is the sliced version of `String` which is `&str`
                 match &method[..] {
                     "get" => {
                         // get all accounts from the local database
@@ -61,9 +61,10 @@ fn main() {
                         eprintln!("Account: Invalid account method");
                     }
                 }
-                // in the case where no arguments exists
-                // the `None` varient of the `Option` is handled
-            } else {
+            }
+            // in the case where no arguments exists
+            // the `None` varient of the `Option` is handled
+            else {
                 // throw errow for invalid number of arguments for the account module
                 eprintln!("bitcoin-rs: Account requires a method")
             }
