@@ -8,6 +8,8 @@ use routes::{Account, Blockchain, Miner, Node, Transaction};
 
 mod routes;
 
+// TODO: Create `usage()` function for displaying help message
+
 fn main() {
     // Collect command-line arguments to a vector
     let argv: Vec<String> = env::args().collect();
@@ -153,9 +155,4 @@ fn main() {
             // throw help message
         }
     }
-
-    // TODO:
-    // Create a HashMap of modules and their methods as values in a vector
-    // Query the map with the supplied module and check against the vector.
-    // if the first value of the argument (the method) exists in the vector.
 }
