@@ -3,6 +3,9 @@ use std::env;
 // interacting with current process
 use std::process;
 
+mod structs;
+use structs::{Account, Blockchain, Miner, Node, Transaction};
+
 fn main() {
     // Collect command-line arguments to a vector
     let argv: Vec<String> = env::args().collect();
@@ -51,4 +54,9 @@ fn main() {
             // throw help message
         }
     }
+
+    // TODO:
+    // Create a HashMap of modules and their methods as values in a vector
+    // Query the map with the supplied module and check against the vector.
+    // if the first value of the argument (the method) exists in the vector.
 }
