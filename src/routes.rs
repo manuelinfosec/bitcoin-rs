@@ -1,3 +1,4 @@
+#[allow(unused_variables)]
 pub struct Account {}
 
 pub struct Blockchain {}
@@ -9,13 +10,14 @@ pub struct Node {}
 pub struct Transaction {}
 
 impl Node {
-    fn add(args: Vec<String>) {
+    #[allow(unused_variables)]
+    pub fn add(args: Vec<String>) {
         // add the node locally
 
         // broadcast all local nodes
     }
 
-    fn list() {
+    pub fn list() {
         // query all local nodes to vector
 
         println!("Printing local nodes...");
@@ -24,6 +26,7 @@ impl Node {
 }
 
 impl Account {
+    #[allow(unused_variables)]
     pub fn create(args: Vec<String>) {
         // generate public, private keys and address
 
@@ -44,17 +47,18 @@ impl Account {
 }
 
 impl Blockchain {
-    fn list() {
+    pub fn list() {
         // use a loop to list all blocks in the local database
     }
 }
 
 impl Transaction {
-    fn list() {
+    pub fn list() {
         // list all transactions from the local database
     }
 
-    fn transfer(args: Vec<String>) {
+    #[allow(unused_variables)]
+    pub fn transfer(args: Vec<String>) {
         // perform a transfer from Node A to Node B
 
         // display the unblock spread
@@ -64,7 +68,8 @@ impl Transaction {
 }
 
 impl Miner {
-    fn start(args: Vec<String>) {
+    #[allow(unused_variables)]
+    pub fn start(args: Vec<String>) {
         // check if there is a current account
         // throw error "to create account" if no account exists
 
