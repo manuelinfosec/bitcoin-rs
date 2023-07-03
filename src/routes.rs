@@ -24,19 +24,19 @@ impl Node {
 }
 
 impl Account {
-    fn create(args: Vec<String>) {
+    pub fn create(args: Vec<String>) {
         // generate public, private keys and address
 
         // display public private keys and address
     }
 
-    fn get() {
+    pub fn get() {
         // get all accounts from local database
 
         // display all accounts
     }
 
-    fn current() {
+    pub fn current() {
         // get current account from local database
 
         // display current account

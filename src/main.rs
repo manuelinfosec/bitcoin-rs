@@ -24,7 +24,7 @@ fn main() {
     // collect the current module from arguments
     let module: &str = &argv[1];
 
-    // perform pattern matching on the module for routin
+    // perform pattern matching on the module for routing
     match module {
         "help" => {
             // throw help message
@@ -36,6 +36,37 @@ fn main() {
         "account" => {
             // call the account module with the rest of argv as arguments
             println!("Account: creating and listing available accounts");
+
+            // check if an argument exists for methods
+            if let Some(method) = argv.get(2) {
+                // perform pattern matching for methods
+                // match constraints is the sliced version of the `String` which is `&str`
+                match &method[..] {
+                    "get" => {
+                        // get all accounts from the local database
+                        Account::get();
+                    }
+                    "create" => {
+                        // create an account (consisting of private, public keys and addresses) to..
+                        // ... the local database
+                        Account::create(argv);
+                    }
+                    "current" => {
+                        // get the current account from the local database
+                        Account::current();
+                    }
+                    // handle for wildcard
+                    _ => {
+                        // throw error for invalid account method
+                        eprintln!("Account: Invalid account method");
+                    }
+                }
+                // in the case where no arguments exists
+                // the `None` varient of the `Option` is handled
+            } else {
+                // throw errow for invalid number of arguments for the account module
+                eprintln!("bitcoin-rs: Account requires a method")
+            }
         }
         "tx" => {
             // call the tx module with the rest of argv as arguments
@@ -50,7 +81,7 @@ fn main() {
         }
         "node" => {
             // call the node module with the rest of argv as arguments
-            printlnl1!("Node: Register a node on the network and list all nodes on the network")
+            println!("Node: Register a node on the network and list all nodes on the network")
         }
         // matching for wildcard (important when using match for `&str`)
         _ => {
