@@ -62,3 +62,13 @@ impl Transaction {
         // display the transaction details
     }
 }
+
+impl Miner {
+    fn start(args: Vec<String>) {
+        // check if there is a current account
+        // throw error "to create account" if no account exists
+
+        // start a node with the current account
+        // in an infinte loop, mine transactions
+    }
+}

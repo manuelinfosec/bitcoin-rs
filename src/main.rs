@@ -3,6 +3,7 @@ use std::env;
 // interacting with current process
 use std::process;
 
+// structs for routing to various components based on the module argument
 use routes::{Account, Blockchain, Miner, Node, Transaction};
 
 mod routes;
@@ -33,19 +34,23 @@ fn main() {
             process::exit(0);
         }
         "account" => {
-            // call the account module
+            // call the account module with the rest of argv as arguments
+            println!("Account: creating and listing available accounts");
         }
         "tx" => {
-            // call the tx module
+            // call the tx module with the rest of argv as arguments
         }
         "blockchain" => {
-            // call the blockchain module
+            // call the blockchain module with the rest of argv as arguments
+            println!("Blockchain: listing all blocks on the blockchain");
         }
         "miner" => {
-            // call the miner module
+            // call the miner module with the rest of argv as arguments
+            println!("Miner: start a node and mine transactions");
         }
         "node" => {
-            // call the node module
+            // call the node module with the rest of argv as arguments
+            printlnl1!("Node: Register a node on the network and list all nodes on the network")
         }
         // matching for wildcard (important when using match for `&str`)
         _ => {
