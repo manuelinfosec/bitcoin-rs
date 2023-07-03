@@ -1,5 +1,3 @@
-#[allow(unused_variables)]
-
 // interacting with the system environment
 use std::env;
 // interacting with current process
