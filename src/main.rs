@@ -69,6 +69,7 @@ fn main() {
             // call the tx module with the rest of argv as arguments
             println!("Transactions: creating and listing all transactions on the blockchain");
 
+            // check if an argument exists for methods
             if let Some(method) = argv.get(2) {
                 match &method[..] {
                     // transfer bitcoin from one node to another
@@ -90,6 +91,8 @@ fn main() {
         "blockchain" => {
             // call the blockchain module with the rest of argv as arguments
             println!("Blockchain: listing all blocks on the blockchain");
+
+            // check if an argument exists for methods
             if let Some(method) = argv.get(2) {
                 match &method[..] {
                     // list all blocks on the blockchain
@@ -109,6 +112,8 @@ fn main() {
         "miner" => {
             // call the miner module with the rest of argv as arguments
             println!("Miner: start a node and mine transactions");
+
+            // check if an argument exists for methods
             if let Some(method) = argv.get(2) {
                 match &method[..] {
                     // start a miner on the network
@@ -128,6 +133,8 @@ fn main() {
         "node" => {
             // call the node module with the rest of argv as arguments
             println!("Node: Register a node on the network and list all nodes on the network");
+
+            // check if an argument exists for methods
             if let Some(method) = argv.get(2) {
                 match &method[..] {
                     // register a node locally and on the network
