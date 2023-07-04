@@ -1,7 +1,13 @@
 use std::collections::HashMap;
-use std::io;
+use std::fs::{File, OpenOptions};
+use std::io::{self, Read, Write};
+use std::path::Path;
 
-use crate::routes::Account;
+use serde::{Deserialize, Serialize};
+use serde::de::DeserializeOwned;
+use serde_json;
+
+// use crate::modules::node::Nodes;
 
 const BASEDBPATH: &str = "data";
 const NODEFILE: &str = "node";
@@ -12,8 +18,8 @@ const BLOCKCHAINDB: &str = "blockchain";
 
 trait BaseDB {
     fn set_path(&mut self);
-    fn read(&self) -> Vec<&str>;
-    fn write(&self, item: String) -> io::Result<()>;
+    fn read<T: DeserializeOwned>(&self) -> Vec<T>;
+    fn write<T: serde::Serialize>(&self, data: &T) -> io::Result<()>;
     fn clear(&self) -> io::Result<()>;
     fn find_all(&self) -> Vec<&str>;
     fn insert(&self, item: String) -> io::Result<()>;
@@ -29,12 +35,40 @@ impl BaseDB for NodeDB {
         self.file_path = String::from(NODEFILE);
     }
 
-    fn read(&self) -> Vec<&str> {
-        todo!()
+    fn read<T: DeserializeOwned>(&self) -> Vec<T> {
+        // create an empty string to save data read from file
+        let mut raw: String = String::new();
+
+        // check if the file exists or return the file for reading
+        let mut file = match File::open(&self.file_path) {
+            Ok(file) => file,
+            // handle file open error, by returning an empty vector
+            Err(_) => return vec![]
+        };
+
+        // handle errors when reading the file
+        if let Err(_) = file.read_to_string(&mut raw) {
+            // return an empty vector
+            return vec![];
+        }
+
+
+        // deserialize from string to Vec<Node>
+        let data: Result<Vec<T>, serde_json::Error> = serde_json::from_str(&raw);
+
+        // check for deserialization errors
+        match data {
+            // return the deserialized data
+            Ok(data) => data,
+            // return a new vector as form of error handling
+            Err(_) => Vec::new(),
+        }
     }
 
-    fn write(&self, item: String) -> io::Result<()> {
-        todo!()
+    fn write<T: serde::Serialize>(&self, data: &T) -> io::Result<()> {
+        let json_data = serde_json::to_string(data)?;
+
+        Ok(())
     }
 
     fn clear(&self) -> io::Result<()> {
@@ -50,7 +84,7 @@ impl BaseDB for NodeDB {
     }
 
     fn hash_insert(&self, item: String) -> io::Result<()> {
-        todo!()
+        Ok(())
     }
 }
 
@@ -63,12 +97,39 @@ impl BaseDB for AccountDB {
         todo!()
     }
 
-    fn read(&self) -> Vec<&str> {
-        todo!()
+    fn read<T: DeserializeOwned>(&self) -> Vec<T> {
+        // create an empty string to save data read from file
+        let mut raw: String = String::new();
+
+        // check if the file exists or return the file for reading
+        let mut file = match File::open(&self.file_path) {
+            Ok(file) => file,
+            // handle file open error, by returning an empty vector
+            Err(_) => return vec![]
+        };
+
+        // handle errors when reading the file
+        if let Err(_) = file.read_to_string(&mut raw) {
+            // return an empty vector
+            return vec![];
+        }
+
+        // deserialize from string to Vec<Node>
+        let data: Result<Vec<T>, serde_json::Error> = serde_json::from_str(&raw);
+
+        // check for deserialization errors
+        match data {
+            // return the deserialized data
+            Ok(data) => data,
+            // return a new vector as form of error handling
+            Err(_) => Vec::new(),
+        }
     }
 
-    fn write(&self, item: String) -> io::Result<()> {
-        todo!()
+
+    fn write<T: serde::Serialize>(&self, data: &T) -> io::Result<()> {
+        let json_data = serde_json::to_string(data);
+        Ok(())
     }
 
     fn clear(&self) -> io::Result<()> {
@@ -103,12 +164,13 @@ impl BaseDB for BlockchainDB {
         todo!()
     }
 
-    fn read(&self) -> Vec<&str> {
+    fn read<T: DeserializeOwned>(&self) -> Vec<T> {
         todo!()
     }
 
-    fn write(&self, item: String) -> io::Result<()> {
-        todo!()
+    fn write<T: serde::Serialize>(&self, data: &T) -> io::Result<()> {
+        let json_data = serde_json::to_string(data);
+        Ok(())
     }
 
     fn clear(&self) -> io::Result<()> {
@@ -135,6 +197,6 @@ impl BlockchainDB {
     }
 
     fn insert(&self) -> io::Result<()> {
-        self.hash_insert()
+        self.hash_insert("Test".to_string())
     }
 }
