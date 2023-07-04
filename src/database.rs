@@ -1,13 +1,10 @@
 use std::collections::HashMap;
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Write};
-use std::path::Path;
 
 use serde::{Deserialize, Serialize};
 use serde::de::DeserializeOwned;
 use serde_json;
-
-// use crate::modules::node::Nodes;
 
 const BASEDBPATH: &str = "data";
 const NODEFILE: &str = "node";
@@ -52,7 +49,6 @@ impl BaseDB for NodeDB {
             return vec![];
         }
 
-
         // deserialize from string to Vec<Node>
         let data: Result<Vec<T>, serde_json::Error> = serde_json::from_str(&raw);
 
@@ -66,7 +62,8 @@ impl BaseDB for NodeDB {
     }
 
     fn write<T: serde::Serialize>(&self, data: &T) -> io::Result<()> {
-        let json_data = serde_json::to_string(data)?;
+        let data: Vec<Nodes> = self.read();
+        // let json_data = serde_json::to_string(data)?;
 
         Ok(())
     }

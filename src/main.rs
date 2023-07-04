@@ -69,7 +69,7 @@ fn main() {
                 }
             }
             // in the case where no arguments exists
-            // the `None` varient of the `Option` is handled
+            // the `None` variant of the `Option` is handled
             else {
                 // throw errow for invalid number of arguments
                 eprintln!("bitcoin-rs: Account requires a method.")
@@ -92,7 +92,7 @@ fn main() {
                 }
             }
             // in the case where no arguments exists
-            // the `None` varient of the `Option` is handled
+            // the `None` variant of the `Option` is handled
             else {
                 // throw errow for invalid number of arguments
                 eprintln!("bitcoin-rs: Transactions requires a method.")
@@ -113,7 +113,7 @@ fn main() {
                 }
             }
             // in the case where no arguments exists
-            // the `None` varient of the `Option` is handled
+            // the `None` variant of the `Option` is handled
             else {
                 // throw errow for invalid number of arguments
                 eprintln!("bitcoin-rs: Blockchain requires a method.")
@@ -134,7 +134,7 @@ fn main() {
                 }
             }
             // in the case where no arguments exists
-            // the `None` varient of the `Option` is handled
+            // the `None` variant of the `Option` is handled
             else {
                 // throw errow for invalid number of arguments
                 eprintln!("bitcoin-rs: Miner requires a method.")
@@ -158,7 +158,7 @@ fn main() {
                 }
             }
             // in the case where no arguments exists
-            // the `None` varient of the `Option` is handled
+            // the `None` variant of the `Option` is handled
             else {
                 // throw errow for invalid number of arguments
                 eprintln!("bitcoin-rs: Node requires a method.")
