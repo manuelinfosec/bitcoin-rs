@@ -6,7 +6,17 @@ use std::process;
 // structs for routing to various components based on the module argument
 use routes::{Account, Blockchain, Miner, Node, Transaction};
 
+mod modules {
+    pub mod node;
+    pub mod blockchain;
+    pub mod miner;
+    pub mod transactions;
+    pub mod account;
+}
+
+mod p2p;
 mod routes;
+mod database;
 
 // TODO: Create `usage()` function for displaying help message
 
@@ -14,7 +24,7 @@ fn main() {
     // Collect command-line arguments to a vector
     let argv: Vec<String> = env::args().collect();
 
-    // check for insufficent number of arguments passed
+    // check for insufficient number of arguments passed
     if argv.len() == 1 {
         // throw help message
         eprintln!("Incorrect number of arguments");
@@ -55,14 +65,14 @@ fn main() {
                     "current" => Account::current(),
 
                     // handle for invalid method argument
-                    _ => eprintln!("Account: Invalid account method")
+                    _ => eprintln!("Account: Invalid account method.")
                 }
             }
             // in the case where no arguments exists
             // the `None` varient of the `Option` is handled
             else {
                 // throw errow for invalid number of arguments
-                eprintln!("bitcoin-rs: Account requires a method")
+                eprintln!("bitcoin-rs: Account requires a method.")
             }
         }
         "tx" => {
@@ -85,7 +95,7 @@ fn main() {
             // the `None` varient of the `Option` is handled
             else {
                 // throw errow for invalid number of arguments
-                eprintln!("bitcoin-rs: Transactions requires a method")
+                eprintln!("bitcoin-rs: Transactions requires a method.")
             }
         }
         "blockchain" => {
@@ -106,7 +116,7 @@ fn main() {
             // the `None` varient of the `Option` is handled
             else {
                 // throw errow for invalid number of arguments
-                eprintln!("bitcoin-rs: Blockchain requires a method")
+                eprintln!("bitcoin-rs: Blockchain requires a method.")
             }
         }
         "miner" => {
@@ -127,7 +137,7 @@ fn main() {
             // the `None` varient of the `Option` is handled
             else {
                 // throw errow for invalid number of arguments
-                eprintln!("bitcoin-rs: Miner requires a method")
+                eprintln!("bitcoin-rs: Miner requires a method.")
             }
         }
         "node" => {
@@ -151,13 +161,13 @@ fn main() {
             // the `None` varient of the `Option` is handled
             else {
                 // throw errow for invalid number of arguments
-                eprintln!("bitcoin-rs: Node requires a method")
+                eprintln!("bitcoin-rs: Node requires a method.")
             }
         }
         // matching for wildcard (important when using match for `&str`)
         _ => {
             // throw invalid module name
-            eprintln!("Invalid module name");
+            eprintln!("bitcoin-rs: \"{module}\" is not a valid module.");
 
             // throw help message
         }
