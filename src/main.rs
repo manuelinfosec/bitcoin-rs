@@ -179,12 +179,11 @@ mod database;
 use crate::modules::node::Nodes;
 
 fn main() {
-    let mut node_db = database::NodeDB {
-        file_path: String::from("data/nodes.json")
-    };
+    let mut node_db = database::NodeDB::new();
 
-    node_db.set_path();
     let mut values: Vec<String> = node_db.read();
+    // values.push(String::from("testing"));
+    node_db.write(String::from("testing")).expect("Could not write");
 
     println!("{values:?}");
 }
