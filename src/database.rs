@@ -55,7 +55,7 @@ impl NodeDB {
     pub fn new() -> NodeDB {
         // perform initialize with database location
         NodeDB {
-            file_path: String::from(format!("/{BASEDBPATH}/{NODEFILE}")) // set a default empty string
+            file_path: String::from(format!("{BASEDBPATH}/{NODEFILE}")) // set a default empty string
         }
     }
 }
@@ -66,7 +66,7 @@ impl BlockchainDB {
     pub fn new() -> BlockchainDB {
         // perform initialization with the database location
         BlockchainDB {
-            file_path: String::from(format!("/{BASEDBPATH}/{BLOCKCHAINDB}"))
+            file_path: String::from(format!("{BASEDBPATH}/{BLOCKCHAINDB}"))
         }
     }
 
@@ -86,7 +86,7 @@ impl AccountDB {
     pub fn new() -> AccountDB {
         // perform initiallization with the database locatin
         AccountDB {
-            file_path: String::from(format!("/{BASEDBPATH}/{ACCOUNTDB}"))
+            file_path: String::from(format!("{BASEDBPATH}/{ACCOUNTDB}"))
         }
     }
     fn find_one(&self) -> &str {
