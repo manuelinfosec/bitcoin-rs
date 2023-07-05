@@ -1,4 +1,4 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
-pub struct Nodes(Vec<String>);
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Nodes(pub Vec<String>);

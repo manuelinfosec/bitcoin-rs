@@ -6,64 +6,84 @@ use serde::{Deserialize, Serialize};
 use serde::de::DeserializeOwned;
 use serde_json;
 
+// use crate::modules::node::Nodes;
+
 const BASEDBPATH: &str = "data";
-const NODEFILE: &str = "node";
+const NODEFILE: &str = "node.json";
 const TXFILE: &str = "txn";
 const UNTXFILE: &str = "untxn";
 const ACCOUNTSDB: &str = "accounts";
 const BLOCKCHAINDB: &str = "blockchain";
 
-trait BaseDB {
+pub trait BaseDB {
     fn set_path(&mut self);
-    fn read<T: DeserializeOwned>(&self) -> Vec<T>;
-    fn write<T: serde::Serialize>(&self, data: &T) -> io::Result<()>;
+    fn read<T: DeserializeOwned + std::fmt::Debug>(&self) -> Vec<T>;
+    fn write<T: Serialize>(&self, data: &T) -> io::Result<()>;
     fn clear(&self) -> io::Result<()>;
     fn find_all(&self) -> Vec<&str>;
     fn insert(&self, item: String) -> io::Result<()>;
     fn hash_insert(&self, item: String) -> io::Result<()>;
 }
 
-struct NodeDB {
-    file_path: String,
+pub struct NodeDB {
+    pub file_path: String,
 }
 
 impl BaseDB for NodeDB {
     fn set_path(&mut self) {
-        self.file_path = String::from(NODEFILE);
+        self.file_path = String::from("data/nodes.json");
     }
 
-    fn read<T: DeserializeOwned>(&self) -> Vec<T> {
+    fn read<T: DeserializeOwned + std::fmt::Debug>(&self) -> Vec<T> {
         // create an empty string to save data read from file
         let mut raw: String = String::new();
 
+        println!("Opening file...");
         // check if the file exists or return the file for reading
         let mut file = match File::open(&self.file_path) {
             Ok(file) => file,
             // handle file open error, by returning an empty vector
-            Err(_) => return vec![]
+            Err(e) => {
+                println!("Error occurred: {e}");
+                return Vec::new();
+            }
         };
 
+        println!("file to string");
         // handle errors when reading the file
         if let Err(_) = file.read_to_string(&mut raw) {
             // return an empty vector
-            return vec![];
+            return Vec::new();
         }
 
         // deserialize from string to Vec<Node>
         let data: Result<Vec<T>, serde_json::Error> = serde_json::from_str(&raw);
 
         // check for deserialization errors
+        // println!("{}")
         match data {
             // return the deserialized data
-            Ok(data) => data,
+            Ok(data) => {
+                // print
+                println!("{data:?}");
+                data
+            }
             // return a new vector as form of error handling
-            Err(_) => Vec::new(),
+            Err(err) =>{
+                println!("{err}");
+                Vec::new()
+            }
         }
     }
 
-    fn write<T: serde::Serialize>(&self, data: &T) -> io::Result<()> {
-        let data: Vec<Nodes> = self.read();
-        // let json_data = serde_json::to_string(data)?;
+    fn write<T: Serialize>(&self, item: &T) -> io::Result<()> {
+        // let mut data: Vec<_> = self.read();
+
+        // data.push(item);
+
+        let json_data = serde_json::to_string(item)?;
+        let mut file = File::create(&self.file_path)?;
+        file.write_all(json_data.as_bytes())?;
 
         Ok(())
     }
@@ -102,13 +122,13 @@ impl BaseDB for AccountDB {
         let mut file = match File::open(&self.file_path) {
             Ok(file) => file,
             // handle file open error, by returning an empty vector
-            Err(_) => return vec![]
+            Err(_) => return Vec::new()
         };
 
         // handle errors when reading the file
         if let Err(_) = file.read_to_string(&mut raw) {
             // return an empty vector
-            return vec![];
+            return Vec::new();
         }
 
         // deserialize from string to Vec<Node>
@@ -124,7 +144,7 @@ impl BaseDB for AccountDB {
     }
 
 
-    fn write<T: serde::Serialize>(&self, data: &T) -> io::Result<()> {
+    fn write<T: Serialize>(&self, data: &T) -> io::Result<()> {
         let json_data = serde_json::to_string(data);
         Ok(())
     }
@@ -158,14 +178,40 @@ struct BlockchainDB {
 
 impl BaseDB for BlockchainDB {
     fn set_path(&mut self) {
-        todo!()
+        // set the file path for operations on this implementation
+        self.file_path = String::from(BLOCKCHAINDB);
     }
 
     fn read<T: DeserializeOwned>(&self) -> Vec<T> {
-        todo!()
+        // create an empty string to save data read from file
+        let mut raw: String = String::new();
+
+        // check if the file exists or return the file for reading
+        let mut file = match File::open(&self.file_path) {
+            Ok(file) => file,
+            // handle file open error, by returning an empty vector
+            Err(_) => return Vec::new()
+        };
+
+        // handle errors when reading the file
+        if let Err(_) = file.read_to_string(&mut raw) {
+            // return an empty vector
+            return Vec::new();
+        }
+
+        // deserialize from string to Vec<Node>
+        let data: Result<Vec<T>, serde_json::Error> = serde_json::from_str(&raw);
+
+        // check for deserialization errors
+        match data {
+            // return the deserialized data
+            Ok(data) => data,
+            // return a new vector as form of error handling
+            Err(_) => Vec::new(),
+        }
     }
 
-    fn write<T: serde::Serialize>(&self, data: &T) -> io::Result<()> {
+    fn write<T: Serialize>(&self, data: &T) -> io::Result<()> {
         let json_data = serde_json::to_string(data);
         Ok(())
     }
