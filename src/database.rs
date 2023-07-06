@@ -16,8 +16,11 @@ const ACCOUNTDB: &str = "accounts.json";
 const BLOCKCHAINDB: &str = "blockchain.json";
 
 pub trait BaseDB {
+    // read the database || return an object that is deserializable
     fn read<T: DeserializeOwned>(&self) -> Vec<T>;
+    // write to the database || accepts serializable and deserializable objects
     fn write<T: Serialize + DeserializeOwned>(&self, data: T) -> io::Result<()>;
+    // erase the database
     fn clear(&self) -> io::Result<()>;
     fn find_all(&self) -> Vec<&str>;
     fn insert(&self, item: String) -> io::Result<()>;
@@ -84,7 +87,7 @@ impl BlockchainDB {
 impl AccountDB {
     // create an instance of the Account database
     pub fn new() -> AccountDB {
-        // perform initiallization with the database locatin
+        // perform initialization with the database location
         AccountDB {
             file_path: String::from(format!("{BASEDBPATH}/{ACCOUNTDB}"))
         }
@@ -97,7 +100,7 @@ impl AccountDB {
 
 // Inherited methods from BaseDB trait
 impl BaseDB for NodeDB {
-    // read the database return an object that is deserializable
+    // read the database || return an object that is deserializable
     fn read<T: DeserializeOwned>(&self) -> Vec<T> {
         // create an empty string to save data read from file
         let mut raw: String = String::new();

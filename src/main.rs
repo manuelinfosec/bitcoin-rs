@@ -7,6 +7,7 @@ use std::process;
 use routes::{Account, Blockchain, Miner, Node, Transaction};
 
 use crate::database::BaseDB;
+use crate::modules::node::Nodes;
 
 mod modules {
     pub mod node;
@@ -73,7 +74,7 @@ mod database;
 //             // in the case where no arguments exists
 //             // the `None` variant of the `Option` is handled
 //             else {
-//                 // throw errow for invalid number of arguments
+//                 // throw error for invalid number of arguments
 //                 eprintln!("bitcoin-rs: Account requires a method.")
 //             }
 //         }
@@ -96,7 +97,7 @@ mod database;
 //             // in the case where no arguments exists
 //             // the `None` variant of the `Option` is handled
 //             else {
-//                 // throw errow for invalid number of arguments
+//                 // throw error for invalid number of arguments
 //                 eprintln!("bitcoin-rs: Transactions requires a method.")
 //             }
 //         }
@@ -117,7 +118,7 @@ mod database;
 //             // in the case where no arguments exists
 //             // the `None` variant of the `Option` is handled
 //             else {
-//                 // throw errow for invalid number of arguments
+//                 // throw error for invalid number of arguments
 //                 eprintln!("bitcoin-rs: Blockchain requires a method.")
 //             }
 //         }
@@ -138,7 +139,7 @@ mod database;
 //             // in the case where no arguments exists
 //             // the `None` variant of the `Option` is handled
 //             else {
-//                 // throw errow for invalid number of arguments
+//                 // throw error for invalid number of arguments
 //                 eprintln!("bitcoin-rs: Miner requires a method.")
 //             }
 //         }
@@ -162,7 +163,7 @@ mod database;
 //             // in the case where no arguments exists
 //             // the `None` variant of the `Option` is handled
 //             else {
-//                 // throw errow for invalid number of arguments
+//                 // throw error for invalid number of arguments
 //                 eprintln!("bitcoin-rs: Node requires a method.")
 //             }
 //         }
@@ -175,8 +176,6 @@ mod database;
 //         }
 //     }
 // }
-
-use crate::modules::node::Nodes;
 
 fn main() {
     let mut node_db = database::NodeDB::new();
