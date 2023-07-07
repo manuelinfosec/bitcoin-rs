@@ -16,15 +16,108 @@ const ACCOUNTDB: &str = "accounts.json";
 const BLOCKCHAINDB: &str = "blockchain.json";
 
 pub trait BaseDB {
+    // get current path to local database
+    fn get_path(&self) -> String;
+
     // read the database || return an object that is deserializable
-    fn read<T: DeserializeOwned>(&self) -> Vec<T>;
-    // write to the database || accepts serializable and deserializable objects
-    fn write<T: Serialize + DeserializeOwned>(&self, data: T) -> io::Result<()>;
+    fn read<T: DeserializeOwned>(&self) -> Vec<T> {
+        let file_path: String = self.get_path();
+        // create an empty string to save data read from file
+        let mut raw: String = String::new();
+
+        // check if the file exists or return the file for reading
+        let mut file = match File::open(file_path) {
+            Ok(file) => file,
+            // handle file open error, by returning an empty vector
+            Err(e) => {
+                return Vec::new();
+            }
+        };
+
+        // handle errors when reading the file
+        if let Err(_) = file.read_to_string(&mut raw) {
+            // return an empty vector
+            return Vec::new();
+        }
+
+        // deserialize from string to Vec<Node>
+        let data: Result<Vec<T>, serde_json::Error> = serde_json::from_str(&raw);
+
+        // check for deserialization errors
+        match data {
+            Ok(data) => {   // return the deserialized data
+                data
+            }
+            Err(err) => {   // return a new vector as form of error handling
+                Vec::new()
+            }
+        }
+    }
+
+    // write an item to the database | accepting parameters that can be serialized or deserialized
+    fn write<T: Serialize + DeserializeOwned>(&self, item: T) -> io::Result<()> {
+        // get current path to local database
+        let file_path: String = self.get_path();
+
+        // read the entire database to vector buffer (there should be a better to do this)
+        let mut data: Vec<T> = self.read();
+
+        // push item to the buffer
+        data.push(item);
+
+        let json_data = serde_json::to_string(&data)?;      // serialize buffer vector to string
+        let mut file = File::create(file_path)?;             // overwrite existing database
+        file.write_all(json_data.as_bytes())?;                     // write serialized string to the database
+
+        Ok(())
+    }
+
     // erase the database
-    fn clear(&self) -> io::Result<()>;
-    fn find_all(&self) -> Vec<&str>;
-    fn insert(&self, item: String) -> io::Result<()>;
-    fn hash_insert(&self, item: String) -> io::Result<()>;
+    fn clear(&self) -> io::Result<()> {
+        let file_path = self.get_path();
+        // truncate the database file
+        File::create(file_path)?;
+        Ok(())
+    }
+
+    // return all objects in the local database
+    fn find_all<T: DeserializeOwned>(&self) -> Vec<T> {
+        // read the local database
+        self.read()
+    }
+
+    // write an item to the local database
+    fn insert<T: Serialize + DeserializeOwned>(&self, item: T) -> io::Result<()> {
+        self.write(item)
+    }
+
+    // insert a transaction hash if it doesn't exist in the local database
+    // fn hash_insert<T>(&self, item: T) -> io::Result<()>
+    //     where T: Serialize + DeserializeOwned
+    // {
+    //     // flag for checking if a hash already exists
+    //     let mut exists = false;
+    //
+    //     // loop through all available hashes
+    //     for obj in self.find_all() {
+    //
+    //         // compare for any matching hashes
+    //         if item.hash == obj.hash {
+    //             // update the flag
+    //             exists = true;
+    //             break;
+    //         }
+    //     }
+    //
+    //     // check if the flag has not been updated
+    //     if !exists {
+    //         // write the transaction to database
+    //         self.write(item)?;
+    //     }
+    //
+    //     // return success
+    //     Ok(())
+    // }
 }
 
 // Nodes in the network
@@ -79,7 +172,8 @@ impl BlockchainDB {
     }
 
     fn insert(&self) -> io::Result<()> {
-        self.hash_insert("Test".to_string())
+        // self.hash_insert("Test".to_string())
+        Ok(())
     }
 }
 
@@ -97,197 +191,47 @@ impl AccountDB {
     }
 }
 
-
-// Inherited methods from BaseDB trait
-impl BaseDB for NodeDB {
-    // read the database || return an object that is deserializable
-    fn read<T: DeserializeOwned>(&self) -> Vec<T> {
-        // create an empty string to save data read from file
-        let mut raw: String = String::new();
-
-        // check if the file exists or return the file for reading
-        let mut file = match File::open(&self.file_path) {
-            Ok(file) => file,
-            // handle file open error, by returning an empty vector
-            Err(e) => {
-                return Vec::new();
-            }
-        };
-
-        // handle errors when reading the file
-        if let Err(_) = file.read_to_string(&mut raw) {
-            // return an empty vector
-            return Vec::new();
+impl TransactionDB {
+    // create an instance of the Transaction database
+    pub fn new() -> TransactionDB {
+        // perform initialization with the database location
+        TransactionDB {
+            file_path: String::from(format!("{BASEDBPATH}/{TXFILE}"))
         }
-
-        // deserialize from string to Vec<Node>
-        let data: Result<Vec<T>, serde_json::Error> = serde_json::from_str(&raw);
-
-        // check for deserialization errors
-        match data {
-            Ok(data) => {   // return the deserialized data
-                data
-            }
-            Err(err) => {   // return a new vector as form of error handling
-                Vec::new()
-            }
-        }
-    }
-
-    // write an item to the database | accepting parameters that can be serialized or deserialized
-    fn write<T: Serialize + DeserializeOwned>(&self, item: T) -> io::Result<()> {
-        // read the entire database to vector buffer (there should be a better to do this)
-        let mut data: Vec<T> = self.read();
-
-        // push item to the buffer
-        data.push(item);
-
-        let json_data = serde_json::to_string(&data)?;      // serialize buffer vector to string
-        let mut file = File::create(&self.file_path)?;             // overwrite existing database
-        file.write_all(json_data.as_bytes())?;                     // write serialized string to the database
-
-        Ok(())
-    }
-
-    fn clear(&self) -> io::Result<()> {
-        todo!()
-    }
-
-    fn find_all(&self) -> Vec<&str> {
-        todo!()
-    }
-
-    fn insert(&self, item: String) -> io::Result<()> {
-        todo!()
-    }
-
-    fn hash_insert(&self, item: String) -> io::Result<()> {
-        Ok(())
     }
 }
 
 
+// Inherited methods from BaseDB trait
+impl BaseDB for NodeDB {
+    // get current path to local database
+    fn get_path(&self) -> String {
+        self.file_path.to_owned()
+    }
+
+    // check if transaction hash exists or insert
+}
+
+
 impl BaseDB for AccountDB {
-    fn read<T: DeserializeOwned>(&self) -> Vec<T> {
-        // create an empty string to save data read from file
-        let mut raw: String = String::new();
-
-        // check if the file exists or return the file for reading
-        let mut file = match File::open(&self.file_path) {
-            Ok(file) => file,
-            // handle file open error, by returning an empty vector
-            Err(_) => return Vec::new()
-        };
-
-        // handle errors when reading the file
-        if let Err(_) = file.read_to_string(&mut raw) {
-            // return an empty vector
-            return Vec::new();
-        }
-
-        // deserialize from string to Vec<Node>
-        let data: Result<Vec<T>, serde_json::Error> = serde_json::from_str(&raw);
-
-        // check for deserialization errors
-        match data {
-            // return the deserialized data
-            Ok(data) => data,
-            // return a new vector as form of error handling
-            Err(_) => Vec::new(),
-        }
-    }
-
-    // write an item to the database | accepting parameters that can be serialized or deserialized
-    fn write<T: Serialize + DeserializeOwned>(&self, item: T) -> io::Result<()> {
-        // read the entire database to vector buffer (there should be a better to do this)
-        let mut data: Vec<T> = self.read();
-
-        // push item to the buffer
-        data.push(item);
-
-        let json_data = serde_json::to_string(&data)?;      // serialize buffer vector to string
-        let mut file = File::create(&self.file_path)?;             // overwrite existing database
-        file.write_all(json_data.as_bytes())?;                     // write serialized string to the database
-
-        Ok(())
-    }
-
-    fn clear(&self) -> io::Result<()> {
-        todo!()
-    }
-
-    fn find_all(&self) -> Vec<&str> {
-        todo!()
-    }
-
-    fn insert(&self, item: String) -> io::Result<()> {
-        todo!()
-    }
-
-    fn hash_insert(&self, item: String) -> io::Result<()> {
-        todo!()
+    // get current path to local database
+    fn get_path(&self) -> String {
+        self.file_path.to_owned()
     }
 }
 
 
 impl BaseDB for BlockchainDB {
-    fn read<T: DeserializeOwned>(&self) -> Vec<T> {
-        // create an empty string to save data read from file
-        let mut raw: String = String::new();
-
-        // check if the file exists or return the file for reading
-        let mut file = match File::open(&self.file_path) {
-            Ok(file) => file,
-            // handle file open error, by returning an empty vector
-            Err(_) => return Vec::new()
-        };
-
-        // handle errors when reading the file
-        if let Err(_) = file.read_to_string(&mut raw) {
-            // return an empty vector
-            return Vec::new();
-        }
-
-        // deserialize from string to Vec<Node>
-        let data: Result<Vec<T>, serde_json::Error> = serde_json::from_str(&raw);
-
-        // check for deserialization errors
-        match data {
-            // return the deserialized data
-            Ok(data) => data,
-            // return a new vector as form of error handling
-            Err(_) => Vec::new(),
-        }
+    // get current path to local database
+    fn get_path(&self) -> String {
+        self.file_path.to_owned()
     }
+}
 
-    // write an item to the database | accepting parameters that can be serialized or deserialized
-    fn write<T: Serialize + DeserializeOwned>(&self, item: T) -> io::Result<()> {
-        // read the entire database to vector buffer (there should be a better to do this)
-        let mut data: Vec<T> = self.read();
 
-        // push item to the buffer
-        data.push(item);
-
-        let json_data = serde_json::to_string(&data)?;      // serialize buffer vector to string
-        let mut file = File::create(&self.file_path)?;             // overwrite existing database
-        file.write_all(json_data.as_bytes())?;                     // write serialized string to the database
-
-        Ok(())
-    }
-
-    fn clear(&self) -> io::Result<()> {
-        todo!()
-    }
-
-    fn find_all(&self) -> Vec<&str> {
-        todo!()
-    }
-
-    fn insert(&self, item: String) -> io::Result<()> {
-        todo!()
-    }
-
-    fn hash_insert(&self, item: String) -> io::Result<()> {
-        todo!()
+impl BaseDB for TransactionDB {
+    // get current path to local database
+    fn get_path(&self) -> String {
+        self.file_path.to_owned()
     }
 }

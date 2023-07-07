@@ -3,26 +3,6 @@ use std::env;
 // interacting with current process
 use std::process;
 
-// structs for routing to various components based on the module argument
-use routes::{Account, Blockchain, Miner, Node, Transaction};
-
-use crate::database::BaseDB;
-use crate::modules::node::Nodes;
-
-mod modules {
-    pub mod node;
-    pub mod blockchain;
-    pub mod miner;
-    pub mod transactions;
-    pub mod account;
-}
-
-mod p2p;
-mod routes;
-mod database;
-
-// TODO: Create `usage()` function for displaying help message
-
 // fn main() {
 //     // Collect command-line arguments to a vector
 //     let argv: Vec<String> = env::args().collect();
@@ -176,13 +156,61 @@ mod database;
 //         }
 //     }
 // }
+use modules::blockchain::Blockchain as BChain;
+use modules::transactions::Transaction as Txn;
+// structs for routing to various components based on the module argument
+use routes::{Account, Blockchain, Miner, Node, Transaction};
+
+use crate::database::{BaseDB, BlockchainDB, TransactionDB};
+use crate::modules::node::Nodes;
+
+mod modules {
+    pub mod node;
+    pub mod blockchain;
+    pub mod miner;
+    pub mod transactions;
+    pub mod account;
+}
+
+mod p2p;
+mod routes;
+mod database;
+
+// TODO: Create `usage()` function for displaying help message
 
 fn main() {
-    let mut node_db = database::NodeDB::new();
-
-    let mut values: Vec<String> = node_db.read();
+    // let mut node_db = database::NodeDB::new();
+    // let mut blockchain = database::BlockchainDB::new();
+    // let mut values: Vec<String> = blockchain.read();
     // values.push(String::from("testing"));
-    node_db.write(String::from("testing")).expect("Could not write");
+    // let block = BChain {
+    //     index: 1,
+    //     timestamp: 1625741692,
+    //     tx: vec![String::from("86dc2f1acfd239004b8a7b515241070204d5da0ccebf82140416623d3380766d")],
+    //     previous_block: "".to_string(),
+    //     nonce: 744,
+    //     hash: "00000fee282315563171dccc13a2eab380ee82351e7efa6ab13249754f283758".to_string(),
+    // };
+    // println!("{block:?}");
+    // blockchain.write(block).unwrap();
+    // // node_db.write(String::from("testing")).expect("Could not write");
+    // let values: Vec<BChain> = blockchain.read();
+    let txn_db = TransactionDB::new();
+
+    let transaction = Txn {
+        timestamp: 1528972068,
+        vin: Vec::new(),
+        vout: vec![modules::transactions::Vout {
+            receiver: "1L8Q3xJyk5MnWoV1Qz6sfT57yGB6bA7DgR".to_string(),
+            amount: 20,
+            hash: "1962d0500de06d90e74249659d12640b32eafbe1ba02fea578637f25464eb220".to_string(),
+        }],
+        hash: "86dc2f1acfd239004b8a7b515241070204d5da0ccebf82140416623d3380766d".to_string(),
+    };
+
+    txn_db.write(transaction).unwrap();
+    let values: Vec<Txn> = txn_db.read();
+
 
     println!("{values:?}");
 }
