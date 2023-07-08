@@ -101,7 +101,6 @@ pub trait BaseDB {
     fn hash_insert<T>(&self, item: T) -> io::Result<()>
         where T: Serialize + DeserializeOwned + HasHashField
     {
-        println!("Hash insert running");
         // flag for checking if a hash already exists
         let mut exists = false;
 
@@ -111,7 +110,6 @@ pub trait BaseDB {
             // compare the hash value of the item to be inserted with the hash value of blocks in...
             // ..the database. If they are equal, an object with the same hash value already exists.
             if item.hash() == obj.hash() {
-                println!("Hash found!");
                 // set the flag to indicate that a matching hash was found
                 exists = true;
                 // exit the loop early since a match was found
@@ -119,7 +117,6 @@ pub trait BaseDB {
             }
         }
 
-        println!("Hash not found!");
         if !exists {
             // If the flag has not been updated (no matching hash was found),
             // write the item to database using `self.write()`.
@@ -250,16 +247,16 @@ impl TransactionDB {
 
     // Insert a single transaction (implementing it as an iterator) or multiple transactions
     // this can also be achieved with method overloading
-    pub fn insert<T>(&self, transaction: impl IntoIterator<Item=Transaction>)
-                 -> io::Result<()>
+    pub fn insert(&self, txn: Transaction)
+                  -> io::Result<()>
     {
         // iterate over each items in the transaction parameter.
         // this works because `transaction` implements the `IntoIterator` trait
-        for txn in transaction {
-            // insert the transaction to the local database by its hash
-            // or do nothing if the hash already exists
-            self.hash_insert(txn)?;
-        }
+        // for txn in transaction {
+        // insert the transaction to the local database by its hash
+        // or do nothing if the hash already exists
+        self.hash_insert(txn)?;
+        // }
 
         // return a successful I/O result
         Ok(())
