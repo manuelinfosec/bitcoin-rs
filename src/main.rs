@@ -170,6 +170,7 @@ mod modules {
     pub mod miner;
     pub mod transactions;
     pub mod account;
+    pub mod generics;
 }
 
 mod p2p;

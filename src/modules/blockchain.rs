@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use super::generics::HasHashField;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Blockchain {
     pub index: u32,

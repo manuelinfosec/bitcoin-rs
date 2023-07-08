@@ -1,12 +1,12 @@
 use std::collections::HashMap;
-use std::fs::{File, OpenOptions};
+use std::fs::File;
 use std::io::{self, Read, Write};
 
 use serde::{Deserialize, Serialize};
 use serde::de::DeserializeOwned;
 use serde_json;
 
-// use crate::modules::node::Nodes;
+use crate::modules::generics::HasHashField;
 
 const BASEDBPATH: &str = "data";
 const NODEFILE: &str = "nodes.json";
@@ -29,7 +29,7 @@ pub trait BaseDB {
         let mut file = match File::open(file_path) {
             Ok(file) => file,
             // handle file open error, by returning an empty vector
-            Err(e) => {
+            Err(_) => {
                 return Vec::new();
             }
         };
@@ -48,7 +48,7 @@ pub trait BaseDB {
             Ok(data) => {   // return the deserialized data
                 data
             }
-            Err(err) => {   // return a new vector as form of error handling
+            Err(_) => {   // return a new vector as form of error handling
                 Vec::new()
             }
         }
@@ -86,38 +86,42 @@ pub trait BaseDB {
         self.read()
     }
 
+
     // write an item to the local database
     fn insert<T: Serialize + DeserializeOwned>(&self, item: T) -> io::Result<()> {
         self.write(item)
     }
 
     // insert a transaction hash if it doesn't exist in the local database
-    // fn hash_insert<T>(&self, item: T) -> io::Result<()>
-    //     where T: Serialize + DeserializeOwned
-    // {
-    //     // flag for checking if a hash already exists
-    //     let mut exists = false;
-    //
-    //     // loop through all available hashes
-    //     for obj in self.find_all() {
-    //
-    //         // compare for any matching hashes
-    //         if item.hash == obj.hash {
-    //             // update the flag
-    //             exists = true;
-    //             break;
-    //         }
-    //     }
-    //
-    //     // check if the flag has not been updated
-    //     if !exists {
-    //         // write the transaction to database
-    //         self.write(item)?;
-    //     }
-    //
-    //     // return success
-    //     Ok(())
-    // }
+    fn hash_insert<T>(&self, item: T) -> io::Result<()>
+        where T: Serialize + DeserializeOwned + HasHashField
+    {
+        // flag for checking if a hash already exists
+        let mut exists = false;
+
+        // loop through all available hashes
+        for obj in self.find_all::<T>() {
+
+            // compare the hash value of the item to be inserted with the hash value of blocks in...
+            // ..the database. If they are equal, an object with the same hash value already exists.
+            if item.hash() == obj.hash() {
+                // set the flag to indicate that a matching hash was found
+                exists = true;
+                // exit the loop early since a match was found
+                break;
+            }
+        }
+
+
+        if !exists {
+            // If the flag has not been updated (no matching hash was found),
+            // write the item to database using `self.write()`.
+            self.write(item)?;
+        }
+
+        // return a successful I/O result
+        Ok(())
+    }
 }
 
 // Nodes in the network
@@ -206,7 +210,7 @@ impl TransactionDB {
 impl BaseDB for NodeDB {
     // get current path to local database
     fn get_path(&self) -> String {
-        self.file_path.to_owned()
+        self.file_path.to_string()
     }
 
     // check if transaction hash exists or insert
@@ -216,7 +220,7 @@ impl BaseDB for NodeDB {
 impl BaseDB for AccountDB {
     // get current path to local database
     fn get_path(&self) -> String {
-        self.file_path.to_owned()
+        self.file_path.to_string()
     }
 }
 
@@ -224,7 +228,7 @@ impl BaseDB for AccountDB {
 impl BaseDB for BlockchainDB {
     // get current path to local database
     fn get_path(&self) -> String {
-        self.file_path.to_owned()
+        self.file_path.to_string()
     }
 }
 
@@ -232,6 +236,6 @@ impl BaseDB for BlockchainDB {
 impl BaseDB for TransactionDB {
     // get current path to local database
     fn get_path(&self) -> String {
-        self.file_path.to_owned()
+        self.file_path.to_string()
     }
 }
