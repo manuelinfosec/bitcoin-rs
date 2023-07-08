@@ -9,3 +9,16 @@ pub struct Blockchain {
     pub nonce: u32,
     pub hash: String,
 }
+
+impl Blockchain {
+    pub fn default() -> Blockchain {
+        Blockchain {
+            index: 0,
+            timestamp: 0,
+            tx: vec![],
+            previous_block: "".to_string(),
+            nonce: 0,
+            hash: "".to_string(),
+        }
+    }
+}

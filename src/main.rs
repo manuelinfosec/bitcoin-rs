@@ -159,9 +159,9 @@ use std::process;
 use modules::blockchain::Blockchain as BChain;
 use modules::transactions::Transaction as Txn;
 // structs for routing to various components based on the module argument
-use routes::{Account, Blockchain, Miner, Node, Transaction};
+use routes::{AccountRoute, BlockchainRoute, MinerRoute, NodeRoute, TransactionRoute};
 
-use crate::database::{BaseDB, BlockchainDB, TransactionDB};
+use crate::database::{BaseDB, BlockchainDB, TransactionDB, UnTransactionDB};
 use crate::modules::node::Nodes;
 
 mod modules {
@@ -196,7 +196,7 @@ fn main() {
     // blockchain.write(block).unwrap();
     // // node_db.write(String::from("testing")).expect("Could not write");
     // let values: Vec<BChain> = blockchain.read();
-    let txn_db = TransactionDB::new();
+    let txn_db: TransactionDB = TransactionDB::new();
 
     let transaction = Txn {
         timestamp: 1528972068,
@@ -209,9 +209,8 @@ fn main() {
         hash: "86dc2f1acfd239004b8a7b515241070204d5da0ccebf82140416623d3380766d".to_string(),
     };
 
-    txn_db.write(transaction).unwrap();
+    txn_db.insert(transaction).unwrap();
     let values: Vec<Txn> = txn_db.read();
-
 
     println!("{values:?}");
 }

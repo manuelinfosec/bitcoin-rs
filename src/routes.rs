@@ -1,14 +1,14 @@
-pub struct Account {}
+pub struct AccountRoute {}
 
-pub struct Blockchain {}
+pub struct BlockchainRoute {}
 
-pub struct Miner {}
+pub struct MinerRoute {}
 
-pub struct Node {}
+pub struct NodeRoute {}
 
-pub struct Transaction {}
+pub struct TransactionRoute {}
 
-impl Node {
+impl NodeRoute {
     #[allow(unused_variables)]
     pub fn add(args: Vec<String>) {
         // add the node locally
@@ -24,7 +24,7 @@ impl Node {
     }
 }
 
-impl Account {
+impl AccountRoute {
     #[allow(unused_variables)]
     pub fn create(args: Vec<String>) {
         // generate public, private keys and address
@@ -45,13 +45,13 @@ impl Account {
     }
 }
 
-impl Blockchain {
+impl BlockchainRoute {
     pub fn list() {
         // use a loop to list all blocks in the local database
     }
 }
 
-impl Transaction {
+impl TransactionRoute {
     pub fn list() {
         // list all transactions from the local database
     }
@@ -66,13 +66,13 @@ impl Transaction {
     }
 }
 
-impl Miner {
+impl MinerRoute {
     #[allow(unused_variables)]
     pub fn start(args: Vec<String>) {
         // check if there is a current account
         // throw error "to create account" if no account exists
 
         // start a node with the current account
-        // in an infinte loop, mine transactions
+        // in an infinite loop, mine transactions
     }
 }

@@ -1,12 +1,17 @@
-use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, Read, Write};
+use std::iter::IntoIterator;
 
-use serde::{Deserialize, Serialize};
 use serde::de::DeserializeOwned;
+use serde::Serialize;
 use serde_json;
 
+use modules::account::Account;
+use modules::blockchain::Blockchain;
+
+use crate::modules;
 use crate::modules::generics::HasHashField;
+use crate::modules::transactions::Transaction;
 
 const BASEDBPATH: &str = "data";
 const NODEFILE: &str = "nodes.json";
@@ -96,6 +101,7 @@ pub trait BaseDB {
     fn hash_insert<T>(&self, item: T) -> io::Result<()>
         where T: Serialize + DeserializeOwned + HasHashField
     {
+        println!("Hash insert running");
         // flag for checking if a hash already exists
         let mut exists = false;
 
@@ -105,6 +111,7 @@ pub trait BaseDB {
             // compare the hash value of the item to be inserted with the hash value of blocks in...
             // ..the database. If they are equal, an object with the same hash value already exists.
             if item.hash() == obj.hash() {
+                println!("Hash found!");
                 // set the flag to indicate that a matching hash was found
                 exists = true;
                 // exit the loop early since a match was found
@@ -112,7 +119,7 @@ pub trait BaseDB {
             }
         }
 
-
+        println!("Hash not found!");
         if !exists {
             // If the flag has not been updated (no matching hash was found),
             // write the item to database using `self.write()`.
@@ -144,7 +151,7 @@ pub struct TransactionDB {
     file_path: String,  // database location
 }
 
-// Transactions that don't store in the database
+// Un-mined Transactions
 pub struct UnTransactionDB {
     file_path: String,  // database location
 }
@@ -170,14 +177,27 @@ impl BlockchainDB {
         }
     }
 
-    #[allow(unused_variables)]
-    fn find(&self, hash: String) -> HashMap<String, String> {
-        HashMap::new()
+    fn find(&self, hash: String) -> Blockchain {
+
+        // initialize a default `Blockchain` with empty values
+        let mut default: Blockchain = Blockchain::default();
+
+        // iterate over all objects for type `Blockchain` from the local database
+        for item in self.find_all::<Blockchain>() {
+            // check if hash of the current item matches the provided hash
+            if item.hash == hash {
+                // if a match is found, update the current item to the default item.
+                default = item;
+            }
+        }
+        // return the final value of the `default` variable
+        default
     }
 
-    fn insert(&self) -> io::Result<()> {
-        // self.hash_insert("Test".to_string())
-        Ok(())
+    // insert a record to the blockchain
+    fn insert(&self, item: Blockchain) -> io::Result<()> {
+        // insert item by hash or do nothing if hash already exists
+        self.hash_insert(item)
     }
 }
 
@@ -190,8 +210,14 @@ impl AccountDB {
             file_path: String::from(format!("{BASEDBPATH}/{ACCOUNTDB}"))
         }
     }
-    fn find_one(&self) -> &str {
-        ""
+
+    // get the last account from the database
+    fn find_one(&self) -> Option<Account> {
+        // read for all accounts from the local database
+        let accounts: Vec<Account> = self.read();
+
+        // get a copied value of the last account
+        accounts.get(0).cloned()
     }
 }
 
@@ -203,6 +229,62 @@ impl TransactionDB {
             file_path: String::from(format!("{BASEDBPATH}/{TXFILE}"))
         }
     }
+
+    fn find(&self, hash: String) -> Transaction {
+
+        // initialize a default `Transaction` with empty values
+        let mut default: Transaction = Transaction::default();
+
+        // iterate over all objects for type `Transaction` from the local database
+        for item in self.find_all::<Transaction>() {
+            // check if hash of the current item matches the provided hash
+            if item.hash == hash {
+                // if a match is found, update the current item to the default item.
+                default = item;
+            }
+        }
+
+        // return the final value of the `default` variable
+        default
+    }
+
+    // Insert a single transaction (implementing it as an iterator) or multiple transactions
+    // this can also be achieved with method overloading
+    pub fn insert<T>(&self, transaction: impl IntoIterator<Item=Transaction>)
+                 -> io::Result<()>
+    {
+        // iterate over each items in the transaction parameter.
+        // this works because `transaction` implements the `IntoIterator` trait
+        for txn in transaction {
+            // insert the transaction to the local database by its hash
+            // or do nothing if the hash already exists
+            self.hash_insert(txn)?;
+        }
+
+        // return a successful I/O result
+        Ok(())
+    }
+}
+
+// Native methods for un-mined transactions
+impl UnTransactionDB {
+    // create an instance of the UnTransaction database
+    pub fn new() -> UnTransactionDB {
+        // perform initialization with the database location
+        UnTransactionDB {
+            file_path: String::from(format!("{BASEDBPATH}/{UNTXFILE}"))
+        }
+    }
+
+    fn all_hashes(&self) -> Vec<String> {
+        let mut hashes: Vec<String> = Vec::new();
+
+        for item in self.find_all::<Transaction>() {
+            hashes.push(item.hash)
+        }
+
+        hashes
+    }
 }
 
 
@@ -212,8 +294,6 @@ impl BaseDB for NodeDB {
     fn get_path(&self) -> String {
         self.file_path.to_string()
     }
-
-    // check if transaction hash exists or insert
 }
 
 
@@ -235,6 +315,12 @@ impl BaseDB for BlockchainDB {
 
 impl BaseDB for TransactionDB {
     // get current path to local database
+    fn get_path(&self) -> String {
+        self.file_path.to_string()
+    }
+}
+
+impl BaseDB for UnTransactionDB {
     fn get_path(&self) -> String {
         self.file_path.to_string()
     }

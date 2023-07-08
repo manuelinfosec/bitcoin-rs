@@ -21,3 +21,14 @@ pub struct Vout {
     pub amount: u32,
     pub hash: String,
 }
+
+impl Transaction {
+    pub fn default() -> Transaction {
+        Transaction {
+            timestamp: 0,
+            vin: vec![],
+            vout: vec![],
+            hash: "".to_string(),
+        }
+    }
+}
