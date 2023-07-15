@@ -22,7 +22,7 @@ pub fn add_node(address: &mut String) {
     // check if address contains a schema
     if !address.contains(schema) {
         // append to the beginning of the string
-        address.insert_str(0,schema)
+        address.insert_str(0,schema);
     }
 
     // append address to list of nodes
