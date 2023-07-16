@@ -61,11 +61,13 @@ pub trait BaseDB {
 
     // write an item to the database | accepting parameters that can be serialized or deserialized
     fn write<T: Serialize + DeserializeOwned>(&self, item: T) -> io::Result<()> {
+
         // get current path to local database
         let file_path: String = self.get_path();
 
         // read the entire database to vector buffer (there should be a better to do this)
         let mut data: Vec<T> = self.read();
+        // println!("{data:?}");
 
         // push item to the buffer
         data.push(item);

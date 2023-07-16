@@ -3,35 +3,60 @@ use serde::{Deserialize, Serialize};
 use database::{BaseDB, NodeDB};
 
 use crate::database;
+use crate::p2p::start_server;
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Nodes(pub Vec<String>);
-
+/// Get all nodes from local database
 pub fn get_nodes() -> Vec<String> {
     NodeDB::new().find_all()
 }
 
+/// Add a node to the local database
 pub fn add_node(address: &mut String) {
-    // define node schema
-    let schema: &str = "tcp://";
+    // Initialize local database API
     let node_db: NodeDB = NodeDB::new();
 
-    // collect all nodes from the local database
-    let mut all_nodes: Vec<String> = node_db.find_all();
+    // define address schema
+    let schema: &str = "tcp://";
 
     // check if address contains a schema
     if !address.contains(schema) {
         // append to the beginning of the string
-        address.insert_str(0,schema);
+        address.insert_str(0, schema);
     }
 
-    // append address to list of nodes
-    all_nodes.push(address.clone());
+    // TODO: Sort nodes before writing to local database
 
-    // clear local node database
-    node_db.clear();
+    // write all nodes to local database
+    node_db.write(address.clone())
+        .expect("Couldn't write to Node database");
+}
 
-    // write all nodes back to local database
-    // TODO: Sort the nodes before writing to database
-    node_db.write(all_nodes);
+/// Perform all due diligence to make the current node blockchain-ready
+fn init_node() {
+    // collect blockchain from all nodes on the network
+
+    // collect all the transactions from all nodes on the network
+
+    // initialize local Transaction and Blockchain databases
+
+    // get blockchain and transactions from local database
+
+    // iterate through the node_blockchains
+    // if there a blockchain downloaded that is longer than what we have locally, replace local.
+
+
+    // iterate through the node_transactions
+    // if there are transactions downloaded that is longer than what we have locally, replace local.
+}
+
+pub fn start_node(address: String) {
+    // make the current node blockchain-ready
+    init_node();
+
+    println!("Node initialization success");
+
+    // check if schema exists or add schema to address
+
+    // thread the local RPC server
+    start_server();
 }

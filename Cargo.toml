@@ -9,3 +9,4 @@ edition = "2021"
 serde = { version = "^1.0.16", features = ["derive"] }
 serde_json = { version = "^1.0.51" }
 jsonrpc = "0.16.0"
+jsonrpc-tcp-server = "18.0.0"

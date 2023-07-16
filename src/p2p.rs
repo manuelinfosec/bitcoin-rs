@@ -1,13 +1,12 @@
-use std::net;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::{net, thread};
+use std::net::{IpAddr, SocketAddr};
 
 use jsonrpc::{self, Client, Error, Request, Response};
 use jsonrpc::simple_tcp::TcpTransport;
-use serde::de::DeserializeOwned;
-use serde::Serialize;
-use serde_json::{json, value, Value};
-// use serde_json::raw::RawValue;
-use serde_json::value::{RawValue, to_raw_value};
+use jsonrpc_tcp_server::{Server, ServerBuilder};
+use jsonrpc_tcp_server::jsonrpc_core::IoHandler;
+use serde::{de::DeserializeOwned, Serialize};
+use serde_json::{value, value::{RawValue, to_raw_value}, Value};
 
 use crate::database::{BaseDB, BlockchainDB, TransactionDB, UnTransactionDB};
 use crate::modules::blockchain::Blockchain;
@@ -17,7 +16,7 @@ use crate::modules::transactions::Transaction;
 // represent the current node as a RPC Server ready to receive connections
 struct RPCServer {
     // server address: `tcp://127.0.0.1:8000
-    server: String,
+    // server: String,
 }
 
 // represent the current node ready to send connections
@@ -34,10 +33,10 @@ impl BroadCast {}
 
 
 impl RPCServer {
-    fn new(server: String) -> RPCServer {
+    fn new() -> RPCServer {
         // return an initialized RPC Server
         RPCServer {
-            server
+            // server
         }
     }
 
@@ -77,7 +76,7 @@ impl RPCServer {
         TransactionDB::new().find_all()
     }
 
-    /// Add an unmined transaction to the local database
+    /// Add an un-mined transaction to the local database
     fn new_untransaction<T: Serialize + DeserializeOwned>(&self, untxns: T) -> () {
         // TODO: What if it fails to insert the transaction?
         UnTransactionDB::new().insert(untxns).unwrap()
@@ -88,7 +87,7 @@ impl RPCServer {
     (&self, txns: T) -> () {
         println!("Received new block transaction!");
 
-        // TODO: What if it fails to write a transcation?
+        // TODO: What if it fails to write a transaction?
         TransactionDB::new().write(txns).unwrap()
     }
 }
@@ -129,7 +128,7 @@ impl RPCClient {
         }
     }
 
-    fn ping(&self, args: Vec<String>) -> Result<bool, Error> {
+    pub fn ping(&self, args: Vec<String>) -> Result<bool, Error> {
         // serialize arguments to raw json
         let params = [to_raw_value(&args)?];
 
@@ -138,7 +137,7 @@ impl RPCClient {
             .build_request("ping", &params);
 
         // send request
-        let response = self.client
+        let response: Response = self.client
             .send_request(request)?;
 
         // deserialize response or an error
@@ -235,7 +234,7 @@ impl RPCClient {
 
         // construct request with parameters
         let request: Request = self.client
-            .build_request("block_transacation", &params);
+            .build_request("block_transaction", &params);
 
         self.client.send_request(request);
 
@@ -260,4 +259,38 @@ fn get_clients() -> Vec<RPCClient> {
 
     // return clients
     clients
+}
+
+// ip: String, port: u16
+
+pub fn start_server() -> Result<(), ()> {
+    // initialize RPC Server
+    let rpc_server: RPCServer = RPCServer::new();
+
+    // initialize Input/Output handler
+    let mut io: IoHandler = IoHandler::default();
+
+    // add the ping method to handler
+    io.add_sync_method("ping", move |_| {
+        Ok(Value::Bool(rpc_server.ping()))
+    });
+
+    println!("Server running at 127.0.0.1:8331");
+
+    // Create a server instance and bind
+    let server: Server = ServerBuilder::new(io)
+        .start(&"127.0.0.1:8000".parse().unwrap())
+        .expect("Failed to start JSON-RPC server");
+
+    // Keep the main thread running by running the server in a separate thread
+    // thread::spawn( || {
+    //     // wait for the server to finish
+    //     server.wait()
+    // });
+    //
+    // println!("Keeping server active...");
+    // // keep the main thread in loop forever
+    loop {
+        server.wait();
+    }
 }
