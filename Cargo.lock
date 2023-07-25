@@ -61,6 +61,7 @@ dependencies = [
  "jsonrpc-tcp-server",
  "serde",
  "serde_json",
+ "tokio",
 ]
 
 [[package]]

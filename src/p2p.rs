@@ -290,7 +290,6 @@ pub fn start_server() -> Result<(), ()> {
     //
     // println!("Keeping server active...");
     // // keep the main thread in loop forever
-    loop {
-        server.wait();
-    }
+    server.wait();
+    Ok(())
 }
