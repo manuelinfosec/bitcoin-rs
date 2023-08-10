@@ -24,13 +24,15 @@ impl NodeRoute {
 
     pub fn list() {
         println!("Querying for local nodes...");
-        // query all local nodes to vector
-        let nodes: Vec<String> = get_nodes();
+        // // query all local nodes to vector
+        // let nodes: Vec<String> = get_nodes();
+        //
+        // // iterate and write all local nodes to STDOUT
+        // for node in nodes {
+        //     println!("{node}");
+        // }
+        get_nodes()
 
-        // iterate and write all local nodes to STDOUT
-        for node in nodes {
-            println!("{node}");
-        }
     }
 
     pub fn start(args: Vec<String>) {

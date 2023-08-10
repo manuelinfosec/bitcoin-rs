@@ -3,11 +3,20 @@ use serde::{Deserialize, Serialize};
 use database::{BaseDB, NodeDB};
 
 use crate::database;
-use crate::p2p::start_server;
+use crate::p2p::{RPCClient, start_server};
 
 /// Get all nodes from local database
-pub fn get_nodes() -> Vec<String> {
-    NodeDB::new().find_all()
+// pub fn get_nodes() -> Vec<String> {
+//     NodeDB::new().find_all()
+// }
+
+pub fn get_nodes() {
+    let client: RPCClient = RPCClient::new("127.0.0.1:8332".to_string());
+
+    println!("About to be pinging...");
+    let result: bool = client.ping(vec![]).expect("Could not ping user");
+    println!("Result: {result}");
+    println!("Pinging too..");
 }
 
 /// Add a node to the local database
