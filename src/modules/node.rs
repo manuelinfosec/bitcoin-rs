@@ -1,22 +1,22 @@
-use serde::{Deserialize, Serialize};
-
 use database::{BaseDB, NodeDB};
 
 use crate::database;
-use crate::p2p::{RPCClient, start_server};
+use crate::p2p::{start_server, RPCClient};
 
 /// Get all nodes from local database
 // pub fn get_nodes() -> Vec<String> {
 //     NodeDB::new().find_all()
 // }
 
-pub fn get_nodes() {
-    let client: RPCClient = RPCClient::new("127.0.0.1:8332".to_string());
+pub fn get_nodes() -> Vec<String> {
+    let client: RPCClient = RPCClient::new("http://127.0.0.1:8000".to_string());
 
     println!("About to be pinging...");
     let result: bool = client.ping(vec![]).expect("Could not ping user");
     println!("Result: {result}");
     println!("Pinging too..");
+
+    vec!["test".to_string()]
 }
 
 /// Add a node to the local database
@@ -36,7 +36,8 @@ pub fn add_node(address: &mut String) {
     // TODO: Sort nodes before writing to local database
 
     // write all nodes to local database
-    node_db.write(address.clone())
+    node_db
+        .write(address.clone())
         .expect("Couldn't write to Node database");
 }
 
@@ -52,7 +53,6 @@ fn init_node() {
 
     // iterate through the node_blockchains
     // if there a blockchain downloaded that is longer than what we have locally, replace local.
-
 
     // iterate through the node_transactions
     // if there are transactions downloaded that is longer than what we have locally, replace local.

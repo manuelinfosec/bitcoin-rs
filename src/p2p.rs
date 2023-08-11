@@ -1,12 +1,10 @@
 use std::net::{IpAddr, SocketAddr};
-use std::{net, thread};
 
-use jsonrpc::Client;
 use jsonrpc::simple_tcp::TcpTransport;
+use jsonrpc::Client;
 use jsonrpc::{Error, Request, Response};
-use jsonrpc_tcp_server::{Server, ServerBuilder};
-// use jsonrpc_tcp_server::jsonrpc_core::{IoHandler, Params};
 use jsonrpc_http_server::jsonrpc_core::IoHandler;
+use jsonrpc_tcp_server::{Server, ServerBuilder};
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::{
     value::{to_raw_value, RawValue},
@@ -15,7 +13,7 @@ use serde_json::{
 
 use crate::database::{BaseDB, BlockchainDB, TransactionDB, UnTransactionDB};
 use crate::modules::blockchain::Blockchain;
-use crate::modules::node::add_node;
+use crate::modules::node::{add_node, get_nodes};
 use crate::modules::transactions::Transaction;
 
 // represent the current node as a RPC Server ready to receive connections
@@ -98,7 +96,7 @@ impl RPCServer {
 impl RPCClient {
     pub fn new(node: String) -> RPCClient {
         // If any, strip scheme from address
-        let stripped_node: String = node.strip_prefix("tcp://").unwrap_or(&node).to_string();
+        let stripped_node: String = node.strip_prefix("http://").unwrap_or(&node).to_string();
 
         // split the node address `127.0.0.1:8000` to `127.0.0.1` and `8080`
         let address_split: Vec<&str> = stripped_node.split(":").collect();
@@ -108,6 +106,8 @@ impl RPCClient {
 
         // parse String to port
         let port: u16 = address_split[1].parse::<u16>().unwrap();
+
+        println!("{} {}", addr, port);
 
         // Defining the transport protocol to use tcp 1.0 is used because minimal dependencies
         // ...is the goal and it's ok to use synchronous communication
@@ -125,12 +125,10 @@ impl RPCClient {
         // serialize arguments to raw json
         let params = [to_raw_value(&args)?];
 
-        println!("Building request");
         // build request with parameters
-        let request: Request = self.client.build_request("ping", &[]);
+        let request: Request = self.client.build_request("ping", &params);
 
         // send request
-        println!("Sending request");
         let response: Response = self.client.send_request(request)?;
 
         println!("Request sent");
@@ -220,23 +218,23 @@ impl RPCClient {
     }
 }
 
-/// Returns an iterable RPCClient(s)
-// fn get_clients() -> Vec<RPCClient> {
-//     // placeholder to store queried clients
-//     let mut clients: Vec<RPCClient> = Vec::new();
-//
-//     // query local database for available nodes
-//     let nodes: Vec<String> = get_nodes();
-//
-//     // iterate through all nodes
-//     for node in nodes {
-//         // construct RPC client from the node
-//         clients.push(RPCClient::new(node));
-//     }
-//
-//     // return clients
-//     clients
-// }
+// Returns an iterable RPCClient(s)
+fn get_clients() -> Vec<RPCClient> {
+    // placeholder to store queried clients
+    let mut clients: Vec<RPCClient> = Vec::new();
+
+    // query local database for available nodes
+    let nodes: Vec<String> = get_nodes();
+
+    // iterate through all nodes
+    for node in nodes {
+        // construct RPC client from the node
+        clients.push(RPCClient::new(node));
+    }
+
+    // return clients
+    clients
+}
 
 // ip: String, port: u16
 

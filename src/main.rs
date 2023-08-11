@@ -3,12 +3,8 @@ use std::env;
 // interacting with current process
 use std::process;
 
-use modules::blockchain::Blockchain as BChain;
-use modules::transactions::Transaction as Txn;
 // structs for routing to various components based on the module argument
 use routes::{AccountRoute, BlockchainRoute, MinerRoute, NodeRoute, TransactionRoute};
-
-use crate::database::{BaseDB, BlockchainDB, TransactionDB, UnTransactionDB};
 
 mod modules {
     pub mod node;

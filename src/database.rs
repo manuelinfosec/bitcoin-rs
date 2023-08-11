@@ -1,6 +1,5 @@
 use std::fs::File;
 use std::io::{self, Read, Write};
-use std::iter::IntoIterator;
 
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -50,10 +49,12 @@ pub trait BaseDB {
 
         // check for deserialization errors
         match data {
-            Ok(data) => {   // return the deserialized data
+            Ok(data) => {
+                // return the deserialized data
                 data
             }
-            Err(_) => {   // return a new vector as form of error handling
+            Err(_) => {
+                // return a new vector as form of error handling
                 Vec::new()
             }
         }
@@ -61,7 +62,6 @@ pub trait BaseDB {
 
     // write an item to the database | accepting parameters that can be serialized or deserialized
     fn write<T: Serialize + DeserializeOwned>(&self, item: T) -> io::Result<()> {
-
         // get current path to local database
         let file_path: String = self.get_path();
 
@@ -72,9 +72,9 @@ pub trait BaseDB {
         // push item to the buffer
         data.push(item);
 
-        let json_data = serde_json::to_string(&data)?;      // serialize buffer vector to string
-        let mut file = File::create(file_path)?;             // overwrite existing database
-        file.write_all(json_data.as_bytes())?;                     // write serialized string to the database
+        let json_data = serde_json::to_string(&data)?; // serialize buffer vector to string
+        let mut file = File::create(file_path)?; // overwrite existing database
+        file.write_all(json_data.as_bytes())?; // write serialized string to the database
 
         Ok(())
     }
@@ -93,7 +93,6 @@ pub trait BaseDB {
         self.read()
     }
 
-
     // write an item to the local database
     fn insert<T: Serialize + DeserializeOwned>(&self, item: T) -> io::Result<()> {
         self.write(item)
@@ -101,14 +100,14 @@ pub trait BaseDB {
 
     // insert a transaction hash if it doesn't exist in the local database
     fn hash_insert<T>(&self, item: T) -> io::Result<()>
-        where T: Serialize + DeserializeOwned + HasHashField
+    where
+        T: Serialize + DeserializeOwned + HasHashField,
     {
         // flag for checking if a hash already exists
         let mut exists = false;
 
         // loop through all available hashes
         for obj in self.find_all::<T>() {
-
             // compare the hash value of the item to be inserted with the hash value of blocks in...
             // ..the database. If they are equal, an object with the same hash value already exists.
             if item.hash() == obj.hash() {
@@ -142,17 +141,17 @@ pub struct AccountDB {
 
 // Blocks in the database
 pub struct BlockchainDB {
-    file_path: String,  // database location
+    file_path: String, // database location
 }
 
 // Transactions in the database
 pub struct TransactionDB {
-    file_path: String,  // database location
+    file_path: String, // database location
 }
 
 // Un-mined Transactions
 pub struct UnTransactionDB {
-    file_path: String,  // database location
+    file_path: String, // database location
 }
 
 // Native methods for the Nodes database
@@ -161,7 +160,7 @@ impl NodeDB {
     pub fn new() -> NodeDB {
         // perform initialize with database location
         NodeDB {
-            file_path: String::from(format!("{BASEDBPATH}/{NODEFILE}")) // set a default empty string
+            file_path: String::from(format!("{BASEDBPATH}/{NODEFILE}")), // set a default empty string
         }
     }
 }
@@ -172,12 +171,11 @@ impl BlockchainDB {
     pub fn new() -> BlockchainDB {
         // perform initialization with the database location
         BlockchainDB {
-            file_path: String::from(format!("{BASEDBPATH}/{BLOCKCHAINDB}"))
+            file_path: String::from(format!("{BASEDBPATH}/{BLOCKCHAINDB}")),
         }
     }
 
     fn find(&self, hash: String) -> Blockchain {
-
         // initialize a default `Blockchain` with empty values
         let mut default: Blockchain = Blockchain::default();
 
@@ -206,7 +204,7 @@ impl AccountDB {
     pub fn new() -> AccountDB {
         // perform initialization with the database location
         AccountDB {
-            file_path: String::from(format!("{BASEDBPATH}/{ACCOUNTDB}"))
+            file_path: String::from(format!("{BASEDBPATH}/{ACCOUNTDB}")),
         }
     }
 
@@ -225,12 +223,11 @@ impl TransactionDB {
     pub fn new() -> TransactionDB {
         // perform initialization with the database location
         TransactionDB {
-            file_path: String::from(format!("{BASEDBPATH}/{TXFILE}"))
+            file_path: String::from(format!("{BASEDBPATH}/{TXFILE}")),
         }
     }
 
     fn find(&self, hash: String) -> Transaction {
-
         // initialize a default `Transaction` with empty values
         let mut default: Transaction = Transaction::default();
 
@@ -249,9 +246,7 @@ impl TransactionDB {
 
     // Insert a single transaction (implementing it as an iterator) or multiple transactions
     // this can also be achieved with method overloading
-    pub fn insert(&self, txn: Transaction)
-                  -> io::Result<()>
-    {
+    pub fn insert(&self, txn: Transaction) -> io::Result<()> {
         // iterate over each items in the transaction parameter.
         // this works because `transaction` implements the `IntoIterator` trait
         // for txn in transaction {
@@ -271,7 +266,7 @@ impl UnTransactionDB {
     pub fn new() -> UnTransactionDB {
         // perform initialization with the database location
         UnTransactionDB {
-            file_path: String::from(format!("{BASEDBPATH}/{UNTXFILE}"))
+            file_path: String::from(format!("{BASEDBPATH}/{UNTXFILE}")),
         }
     }
 
@@ -286,7 +281,6 @@ impl UnTransactionDB {
     }
 }
 
-
 // Inherited methods from BaseDB trait
 impl BaseDB for NodeDB {
     // get current path to local database
@@ -295,7 +289,6 @@ impl BaseDB for NodeDB {
     }
 }
 
-
 impl BaseDB for AccountDB {
     // get current path to local database
     fn get_path(&self) -> String {
@@ -303,14 +296,12 @@ impl BaseDB for AccountDB {
     }
 }
 
-
 impl BaseDB for BlockchainDB {
     // get current path to local database
     fn get_path(&self) -> String {
         self.file_path.to_string()
     }
 }
-
 
 impl BaseDB for TransactionDB {
     // get current path to local database

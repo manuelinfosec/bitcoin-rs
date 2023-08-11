@@ -31,10 +31,11 @@ impl NodeRoute {
         // for node in nodes {
         //     println!("{node}");
         // }
-        get_nodes()
-
+        get_nodes();
+        ()
     }
 
+    #[allow(unused_variables)]
     pub fn start(args: Vec<String>) {
         // collect address from arguments
         // let addr: String = args[3].to_string();
