@@ -1,4 +1,5 @@
 use database::{BaseDB, NodeDB};
+use tokio::runtime;
 
 use crate::database;
 use crate::p2p::{start_server, RPCClient};
@@ -9,7 +10,7 @@ use crate::p2p::{start_server, RPCClient};
 // }
 
 pub fn get_nodes() -> Vec<String> {
-    let client: RPCClient = RPCClient::new("http://127.0.0.1:8000".to_string());
+    let client: RPCClient = RPCClient::new("http://127.0.0.1:8332".to_string());
 
     println!("About to be pinging...");
     let result: bool = client.ping(vec![]).expect("Could not ping user");
@@ -58,7 +59,10 @@ fn init_node() {
     // if there are transactions downloaded that is longer than what we have locally, replace local.
 }
 
-pub fn start_node(address: String) {
+pub async fn start_node(address: String) {
+    // create a runtime to facilitate starting the server asynchrounously
+    // let rt = runtime::Runtime::new().expect("Failed to create runtime");
+
     // make the current node blockchain-ready
     init_node();
 
@@ -67,5 +71,11 @@ pub fn start_node(address: String) {
     // check if schema exists or add schema to address
 
     // thread the local RPC server
-    start_server();
+
+    // run the async funciton inside the runtime
+    start_server().await;
+    // rt.block_on(async {
+        // println!("Server got to this point?");
+    // });
+    
 }

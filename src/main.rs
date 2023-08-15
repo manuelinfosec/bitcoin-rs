@@ -7,19 +7,20 @@ use std::process;
 use routes::{AccountRoute, BlockchainRoute, MinerRoute, NodeRoute, TransactionRoute};
 
 mod modules {
-    pub mod node;
-    pub mod blockchain;
-    pub mod miner;
-    pub mod transactions;
     pub mod account;
+    pub mod blockchain;
     pub mod generics;
+    pub mod miner;
+    pub mod node;
+    pub mod transactions;
 }
 
+mod database;
 mod p2p;
 mod routes;
-mod database;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     // Collect command-line arguments to a vector
     let argv: Vec<String> = env::args().collect();
 
@@ -64,7 +65,7 @@ fn main() {
                     "current" => AccountRoute::current(),
 
                     // handle for invalid method argument
-                    _ => eprintln!("Account: Invalid account method.")
+                    _ => eprintln!("Account: Invalid account method."),
                 }
             }
             // in the case where no arguments exists
@@ -87,7 +88,7 @@ fn main() {
                     // list all transactions on the blockchain
                     "list" => TransactionRoute::list(),
 
-                    _ => eprintln!("Transactions: \"{method}\" is not a {module} module")
+                    _ => eprintln!("Transactions: \"{method}\" is not a {module} module"),
                 }
             }
             // in the case where no arguments exists
@@ -108,7 +109,7 @@ fn main() {
                     "list" => BlockchainRoute::list(),
 
                     // handle for invalid method
-                    _ => eprintln!("Blockchain: \"{method}\" is not a {module} module")
+                    _ => eprintln!("Blockchain: \"{method}\" is not a {module} module"),
                 }
             }
             // in the case where no arguments exists
@@ -129,7 +130,7 @@ fn main() {
                     "start" => MinerRoute::start(argv),
 
                     // handle for invalid method
-                    _ => eprintln!("Miner: \"{method}\" is not a {module} module")
+                    _ => eprintln!("Miner: \"{method}\" is not a {module} module"),
                 }
             }
             // in the case where no arguments exists
@@ -152,10 +153,10 @@ fn main() {
                     "list" => NodeRoute::list(),
 
                     // start a node locally
-                    "start" => NodeRoute::start(argv),
+                    "start" => NodeRoute::start(argv).await,
 
                     // handle for invalid method
-                    _ => eprintln!("Node: \"{method}\" is not a {module} module")
+                    _ => eprintln!("Node: \"{method}\" is not a {module} module"),
                 }
             }
             // in the case where no arguments exists
@@ -174,7 +175,6 @@ fn main() {
         }
     }
 }
-
 
 // TODO: Create `usage()` function for displaying help message
 

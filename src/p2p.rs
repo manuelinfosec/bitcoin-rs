@@ -1,15 +1,13 @@
 use std::net::{IpAddr, SocketAddr};
 
-use jsonrpc::simple_tcp::TcpTransport;
+// use jsonrpc::simple_tcp::TcpTransport;
+use jsonrpc::client;
 use jsonrpc::Client;
 use jsonrpc::{Error, Request, Response};
-use jsonrpc_http_server::jsonrpc_core::IoHandler;
-use jsonrpc_tcp_server::{Server, ServerBuilder};
+// use jsonrpsee::server::{RpcModule, Server};
+use jsonrpsee_server::{RpcModule, Server};
 use serde::{de::DeserializeOwned, Serialize};
-use serde_json::{
-    value::{to_raw_value, RawValue},
-    Value,
-};
+use serde_json::value::{to_raw_value, RawValue};
 
 use crate::database::{BaseDB, BlockchainDB, TransactionDB, UnTransactionDB};
 use crate::modules::blockchain::Blockchain;
@@ -111,13 +109,14 @@ impl RPCClient {
 
         // Defining the transport protocol to use tcp 1.0 is used because minimal dependencies
         // ...is the goal and it's ok to use synchronous communication
-        let transport: TcpTransport = TcpTransport::new(SocketAddr::new(addr, port));
+
+        // let transport: TcpTransport = TcpTransport::new(SocketAddr::new(addr, port));
 
         // construct a RPC client
         RPCClient {
             node,
             // construct client with transport tcp transport protocol
-            client: Client::with_transport(transport),
+            client: Client::simple_http("http://127.0.0.1:8332", None, None).unwrap(),
         }
     }
 
@@ -127,7 +126,7 @@ impl RPCClient {
 
         // build request with parameters
         let request: Request = self.client.build_request("ping", &params);
-
+        println!("About sending request");
         // send request
         let response: Response = self.client.send_request(request)?;
 
@@ -238,38 +237,37 @@ fn get_clients() -> Vec<RPCClient> {
 
 // ip: String, port: u16
 
-pub fn start_server() -> Result<(), ()> {
+pub async fn start_server() -> Result<(), Box<dyn std::error::Error>> {
+    println!("Starting server?");
     // initialize RPC Server
     let rpc_server: RPCServer = RPCServer::new();
 
     // initialize Input/Output handler
-    let mut io: IoHandler = IoHandler::default();
+    let mut io: RpcModule<()> = RpcModule::new(());
 
     // add the ping method to handler
     // io.add_sync_method("ping", move |_| async {
     //     Ok(Value::Bool(rpc_server.ping().await))
     // });
 
-    io.add_sync_method("ping", move |_| Ok(Value::Bool(rpc_server.ping())));
-
-    // io.add_method("ping", ping_handler);
+    io.register_method("ping", move |_, _| rpc_server.ping())?;
+    // io.add_sync_method("ping", move |_| Ok(Value::Bool(rpc_server.ping())));
 
     println!("Server running at 0.0.0.0:8332");
 
     // Create a server instance and bind
-    let server: Server = ServerBuilder::new(io)
-        .start(&"0.0.0.0:8332".parse().unwrap())
-        .expect("Failed to start JSON-RPC server");
+    let server: Server = Server::builder()
+        .build("0.0.0.0:8332".parse::<SocketAddr>()?)
+        .await?;
 
-    // Keep the main thread running by running the server in a separate thread
-    // thread::spawn( || {
-    //     // wait for the server to finish
-    //     server.wait()
-    // });
-    //
-    // println!("Keeping server active...");
-    // // keep the main thread in loop forever
+    // start the server
+    println!("{:?}", &server.local_addr());
+    let handle = server.start(io);
 
-    server.wait();
+    println!("Server Started");
+
+    // handle the server shutdown gracefully
+    handle.stopped().await;
+
     Ok(())
 }

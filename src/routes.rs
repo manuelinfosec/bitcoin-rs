@@ -36,7 +36,7 @@ impl NodeRoute {
     }
 
     #[allow(unused_variables)]
-    pub fn start(args: Vec<String>) {
+    pub  async fn start(args: Vec<String>) {
         // collect address from arguments
         // let addr: String = args[3].to_string();
         let addr: String = String::new();
@@ -44,7 +44,7 @@ impl NodeRoute {
         println!("Starting node at {addr}");
 
         // start a node
-        start_node(addr)
+        start_node(addr).await
     }
 }
 
