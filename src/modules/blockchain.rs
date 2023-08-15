@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Blockchain {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Block {
     pub index: u32,
     pub timestamp: u64,
     pub tx: Vec<String>,
@@ -10,9 +10,9 @@ pub struct Blockchain {
     pub hash: String,
 }
 
-impl Blockchain {
-    pub fn default() -> Blockchain {
-        Blockchain {
+impl Block {
+    pub fn default() -> Block {
+        Block {
             index: 0,
             timestamp: 0,
             tx: vec![],

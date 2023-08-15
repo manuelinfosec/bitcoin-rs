@@ -6,7 +6,7 @@ use serde::Serialize;
 use serde_json;
 
 use modules::account::Account;
-use modules::blockchain::Blockchain;
+use modules::blockchain::Block;
 
 use crate::modules;
 use crate::modules::generics::HasHashField;
@@ -175,12 +175,12 @@ impl BlockchainDB {
         }
     }
 
-    fn find(&self, hash: String) -> Blockchain {
-        // initialize a default `Blockchain` with empty values
-        let mut default: Blockchain = Blockchain::default();
+    fn find(&self, hash: String) -> Block {
+        // initialize a default `Block` with empty values
+        let mut default: Block = Block::default();
 
-        // iterate over all objects for type `Blockchain` from the local database
-        for item in self.find_all::<Blockchain>() {
+        // iterate over all objects for type `Block` from the local database
+        for item in self.find_all::<Block>() {
             // check if hash of the current item matches the provided hash
             if item.hash == hash {
                 // if a match is found, update the current item to the default item.
@@ -192,7 +192,7 @@ impl BlockchainDB {
     }
 
     // insert a record to the blockchain
-    fn insert(&self, item: Blockchain) -> io::Result<()> {
+    fn insert(&self, item: Block) -> io::Result<()> {
         // insert item by hash or do nothing if hash already exists
         self.hash_insert(item)
     }

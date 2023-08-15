@@ -1,20 +1,21 @@
 use std::net::{IpAddr, SocketAddr};
 
 // use jsonrpc::simple_tcp::TcpTransport;
-use jsonrpc::client;
 use jsonrpc::Client;
 use jsonrpc::{Error, Request, Response};
+use jsonrpsee_server::ServerHandle;
 // use jsonrpsee::server::{RpcModule, Server};
 use jsonrpsee_server::{RpcModule, Server};
 use serde::{de::DeserializeOwned, Serialize};
-use serde_json::value::{to_raw_value, RawValue};
+use serde_json::value::{to_raw_value, RawValue, Value};
 
 use crate::database::{BaseDB, BlockchainDB, TransactionDB, UnTransactionDB};
-use crate::modules::blockchain::Blockchain;
+use crate::modules::blockchain::Block;
 use crate::modules::node::{add_node, get_nodes};
 use crate::modules::transactions::Transaction;
 
 // represent the current node as a RPC Server ready to receive connections
+#[derive(Clone, Copy)]
 struct RPCServer {
     // server address: `tcp://127.0.0.1:8000
     // server: String,
@@ -48,7 +49,7 @@ impl RPCServer {
     }
 
     /// Get blockchain from local database
-    fn get_blockchain(&self) -> Vec<Blockchain> {
+    fn get_blockchain(&self) -> Vec<Block> {
         // return all block from the local blockchain database
         BlockchainDB::new().find_all()
     }
@@ -73,6 +74,7 @@ impl RPCServer {
     /// Get all transactions from the local database
     fn get_transactions(&self) -> Vec<Transaction> {
         // return all transactions from local database
+        println!("Transactions ----");
         TransactionDB::new().find_all()
     }
 
@@ -135,7 +137,7 @@ impl RPCClient {
         response.result::<bool>()
     }
 
-    fn get_blockchain(&self, args: Vec<String>) -> Result<Vec<Blockchain>, Error> {
+    fn get_blockchain(&self, args: Vec<String>) -> Result<Vec<Block>, Error> {
         // serialize arguments to raw json
         let params: [Box<RawValue>; 1] = [to_raw_value(&args)?];
 
@@ -145,10 +147,10 @@ impl RPCClient {
         // send request
         let response: Response = self.client.send_request(request)?;
         // deserialize response or return an error
-        response.result::<Vec<Blockchain>>()
+        response.result::<Vec<Block>>()
     }
 
-    fn new_block(&self, block: Blockchain) -> Result<(), Error> {
+    fn new_block(&self, block: Block) -> Result<(), Error> {
         // serialize arguments to raw json
         let params: [Box<RawValue>; 1] = [to_raw_value(&block)?];
 
@@ -178,13 +180,13 @@ impl RPCClient {
         Ok(())
     }
 
-    fn get_transactions(&self, args: Vec<String>) -> Result<Vec<Transaction>, Error> {
+    pub fn get_transactions(&self, args: Vec<String>) -> Result<Vec<Transaction>, Error> {
         // serialize arguments to raw json
         let params: [Box<RawValue>; 1] = [to_raw_value(&args)?];
 
         // construct request with parameters
         let request: Request = self.client.build_request("get_transactions", &params);
-
+        println!("Sending Transactions");
         let response: Response = self.client.send_request(request)?;
 
         // deserialize response or throw error
@@ -250,8 +252,30 @@ pub async fn start_server() -> Result<(), Box<dyn std::error::Error>> {
     //     Ok(Value::Bool(rpc_server.ping().await))
     // });
 
+    // registering RPCServer methods
     io.register_method("ping", move |_, _| rpc_server.ping())?;
-    // io.add_sync_method("ping", move |_| Ok(Value::Bool(rpc_server.ping())));
+    io.register_method("get_blockchain", move |_, _| rpc_server.get_blockchain())?;
+
+    io.register_method("new_block", move |_, params| {
+        // deserialize `params` to Block
+    });
+
+    io.register_method("add_node", move |_, params| {
+        // check deserialization results
+        match serde_json::from_value::<String>((*params).into()) {
+            // if deserializ
+            Ok(node) => rpc_server.add_node(node),
+            Err(_) => (),
+        };
+    })?;
+
+    io.register_method("get_transactions", move |_, _| {
+        rpc_server.get_transactions()
+    })?;
+
+    io.register_method("block_transactions", move |_, params| {
+        // deserialize parameter to Transaction or Vec<Transactions>
+    })?;
 
     println!("Server running at 0.0.0.0:8332");
 
@@ -262,7 +286,7 @@ pub async fn start_server() -> Result<(), Box<dyn std::error::Error>> {
 
     // start the server
     println!("{:?}", &server.local_addr());
-    let handle = server.start(io);
+    let handle: ServerHandle = server.start(io);
 
     println!("Server Started");
 

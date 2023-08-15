@@ -1,5 +1,5 @@
 use database::{BaseDB, NodeDB};
-use tokio::runtime;
+// use tokio::runtime;
 
 use crate::database;
 use crate::p2p::{start_server, RPCClient};
@@ -13,8 +13,8 @@ pub fn get_nodes() -> Vec<String> {
     let client: RPCClient = RPCClient::new("http://127.0.0.1:8332".to_string());
 
     println!("About to be pinging...");
-    let result: bool = client.ping(vec![]).expect("Could not ping user");
-    println!("Result: {result}");
+    let result = client.get_transactions(vec![]).expect("Could not ping user");
+    println!("Result: {result:?}");
     println!("Pinging too..");
 
     vec!["test".to_string()]
@@ -26,7 +26,7 @@ pub fn add_node(address: &mut String) {
     let node_db: NodeDB = NodeDB::new();
 
     // define address schema
-    let schema: &str = "tcp://";
+    let schema: &str = "http://";
 
     // check if address contains a schema
     if !address.contains(schema) {

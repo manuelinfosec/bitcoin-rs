@@ -1,4 +1,4 @@
-use super::blockchain::Blockchain;
+use super::blockchain::Block;
 use super::transactions::Transaction;
 
 pub trait HasHashField {
@@ -11,7 +11,7 @@ impl HasHashField for Transaction {
     }
 }
 
-impl HasHashField for Blockchain {
+impl HasHashField for Block {
     fn hash(&self) -> String {
         self.hash.to_string()
     }
