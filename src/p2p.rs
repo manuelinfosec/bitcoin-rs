@@ -258,7 +258,7 @@ pub async fn start_server() -> Result<(), Box<dyn std::error::Error>> {
 
     io.register_method("new_block", move |_, params| {
         // deserialize `params` to Block
-    });
+    })?;
 
     io.register_method("add_node", move |_, params| {
         // check deserialization results
