@@ -7,7 +7,7 @@ use jsonrpsee_server::ServerHandle;
 // use jsonrpsee::server::{RpcModule, Server};
 use jsonrpsee_server::{RpcModule, Server};
 use serde::{de::DeserializeOwned, Serialize};
-use serde_json::value::{to_raw_value, RawValue, Value};
+use serde_json::value::{to_raw_value, RawValue};
 
 use crate::database::{BaseDB, BlockchainDB, TransactionDB, UnTransactionDB};
 use crate::modules::blockchain::Block;
@@ -31,7 +31,92 @@ pub struct RPCClient {
 
 struct BroadCast {}
 
-impl BroadCast {}
+impl BroadCast {
+    pub fn ping(args: Vec<String>) {
+        // collect all nodes from local database
+        let clients: Vec<RPCClient> = get_clients();
+
+        // interate through all clients
+        for client in clients {
+            // make RPC call
+            client.ping(args.clone());
+        }
+    }
+
+    fn get_blockchain(args: Vec<String>) -> Result<Vec<Vec<Block>>, Error> {
+        // collect all nodes from local database
+        let clients: Vec<RPCClient> = get_clients();
+
+        // storing all blocks from every node
+        let mut all_blocks: Vec<Vec<Block>> = vec![];
+
+        // interate through all clients
+        for client in clients {
+            // make RPC call
+            all_blocks.push(client.get_blockchain(args.clone())?);
+        }
+
+        Ok(all_blocks)
+    }
+
+    fn new_block(block: Block) {
+        // collect all nodes from local database
+        let clients: Vec<RPCClient> = get_clients();
+
+        // interate through all clients
+        for client in clients {
+            // make RPC call
+            client.new_block(block.clone());
+        }
+    }
+
+    fn add_node(address: String) {
+        // collect all nodes from local database
+        let clients: Vec<RPCClient> = get_clients();
+
+        // interate through all clients
+        for client in clients {
+            // make RPC call
+            client.add_node(address.clone())?;
+        }
+    }
+
+    pub fn get_transactions(args: Vec<String>) -> Result<Vec<Vec<Transaction>>, Error> {
+        // collect all nodes from local database
+        let clients: Vec<RPCClient> = get_clients();
+        let mut all_transactions: Vec<Vec<Transaction>> = vec![];
+
+        // interate through all clients
+        for client in clients {
+            // make RPC call
+            all_transactions.push(client.get_transactions(args.clone())?);
+        }
+
+        Ok(all_transactions)
+    }
+
+    fn new_untransaction<T: Copy + Serialize + DeserializeOwned>(args: T) {
+        // collect all nodes from local database
+        let clients: Vec<RPCClient> = get_clients();
+
+        // interate through all clients
+        for client in clients {
+            // make RPC call
+            client.new_untransaction(args.clone());
+        }
+    }
+
+    fn block_transaction<T: Copy + Serialize + DeserializeOwned>(txn: T) {
+        // collect all nodes from local database
+        let clients: Vec<RPCClient> = get_clients();
+
+        // interate through all clients
+        for client in clients {
+            // make RPC cal
+            client.block_transaction(txn.clone());
+        }
+    }
+}
 
 impl RPCServer {
     fn new() -> RPCServer {
@@ -44,7 +129,6 @@ impl RPCServer {
     /// Check for connectivity
     fn ping(&self) -> bool {
         // indicate connectivity
-        println!("test ping");
         true
     }
 
@@ -68,7 +152,7 @@ impl RPCServer {
     /// Add a node to the local database
     fn add_node(&self, address: String) {
         // add node to local database cloning `address` as mutable string
-        add_node(&mut address.clone())
+        add_node(address)
     }
 
     /// Get all transactions from the local database
@@ -106,13 +190,6 @@ impl RPCClient {
 
         // parse String to port
         let port: u16 = address_split[1].parse::<u16>().unwrap();
-
-        println!("{} {}", addr, port);
-
-        // Defining the transport protocol to use tcp 1.0 is used because minimal dependencies
-        // ...is the goal and it's ok to use synchronous communication
-
-        // let transport: TcpTransport = TcpTransport::new(SocketAddr::new(addr, port));
 
         // construct a RPC client
         RPCClient {
@@ -201,7 +278,7 @@ impl RPCClient {
         let request: Request = self.client.build_request("new_untransaction", &params);
 
         // send request || doesn't require response
-        self.client.send_request(request);
+        self.client.send_request(request)?;
 
         Ok(())
     }
@@ -213,7 +290,7 @@ impl RPCClient {
         // construct request with parameters
         let request: Request = self.client.build_request("block_transaction", &params);
 
-        self.client.send_request(request);
+        self.client.send_request(request)?;
 
         Ok(())
     }
@@ -240,32 +317,31 @@ fn get_clients() -> Vec<RPCClient> {
 // ip: String, port: u16
 
 pub async fn start_server() -> Result<(), Box<dyn std::error::Error>> {
-    println!("Starting server?");
     // initialize RPC Server
     let rpc_server: RPCServer = RPCServer::new();
 
     // initialize Input/Output handler
     let mut io: RpcModule<()> = RpcModule::new(());
 
-    // add the ping method to handler
-    // io.add_sync_method("ping", move |_| async {
-    //     Ok(Value::Bool(rpc_server.ping().await))
-    // });
-
     // registering RPCServer methods
     io.register_method("ping", move |_, _| rpc_server.ping())?;
     io.register_method("get_blockchain", move |_, _| rpc_server.get_blockchain())?;
 
     io.register_method("new_block", move |_, params| {
-        // deserialize `params` to Block
+        // check deserialization results
+        match serde_json::from_value::<Block>((*params).into()) {
+            // if deserialization is successful
+            Ok(block) => rpc_server.new_block(block),
+            Err(_) => (),
+        };
     })?;
 
     io.register_method("add_node", move |_, params| {
         // check deserialization results
         match serde_json::from_value::<String>((*params).into()) {
-            // if deserializ
+            // if deserialization is successful
             Ok(node) => rpc_server.add_node(node),
-            Err(_) => (),   
+            Err(_) => (),
         };
     })?;
 
@@ -277,8 +353,6 @@ pub async fn start_server() -> Result<(), Box<dyn std::error::Error>> {
         // deserialize parameter to Transaction or Vec<Transactions>
     })?;
 
-    println!("Server running at 0.0.0.0:8332");
-
     // Create a server instance and bind
     let server: Server = Server::builder()
         .build("0.0.0.0:8332".parse::<SocketAddr>()?)
@@ -288,7 +362,7 @@ pub async fn start_server() -> Result<(), Box<dyn std::error::Error>> {
     println!("{:?}", &server.local_addr());
     let handle: ServerHandle = server.start(io);
 
-    println!("Server Started");
+    println!("Server running at 0.0.0.0:8332");
 
     // handle the server shutdown gracefully
     handle.stopped().await;

@@ -17,7 +17,7 @@ impl NodeRoute {
         let mut node: String = args[3].clone();
 
         // add the node locally
-        node::add_node(&mut node);
+        node::add_node(node);
 
         // broadcast to all local nodes
     }
@@ -36,7 +36,7 @@ impl NodeRoute {
     }
 
     #[allow(unused_variables)]
-    pub  async fn start(args: Vec<String>) {
+    pub async fn start(args: Vec<String>) {
         // collect address from arguments
         // let addr: String = args[3].to_string();
         let addr: String = String::new();

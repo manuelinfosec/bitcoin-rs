@@ -13,7 +13,9 @@ pub fn get_nodes() -> Vec<String> {
     let client: RPCClient = RPCClient::new("http://127.0.0.1:8332".to_string());
 
     println!("About to be pinging...");
-    let result = client.get_transactions(vec![]).expect("Could not ping user");
+    let result = client
+        .get_transactions(vec![])
+        .expect("Could not ping user");
     println!("Result: {result:?}");
     println!("Pinging too..");
 
@@ -21,9 +23,12 @@ pub fn get_nodes() -> Vec<String> {
 }
 
 /// Add a node to the local database
-pub fn add_node(address: &mut String) {
+pub fn add_node(address: String) {
     // Initialize local database API
     let node_db: NodeDB = NodeDB::new();
+
+    // initialize address for mutability
+    let mut address: String = address;
 
     // define address schema
     let schema: &str = "http://";
@@ -38,7 +43,7 @@ pub fn add_node(address: &mut String) {
 
     // write all nodes to local database
     node_db
-        .write(address.clone())
+        .write(address)
         .expect("Couldn't write to Node database");
 }
 
@@ -75,7 +80,6 @@ pub async fn start_node(address: String) {
     // run the async funciton inside the runtime
     start_server().await;
     // rt.block_on(async {
-        // println!("Server got to this point?");
+    // println!("Server got to this point?");
     // });
-    
 }
