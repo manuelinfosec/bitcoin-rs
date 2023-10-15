@@ -62,7 +62,7 @@ This project has a simplified block data as follows:
 The process of calculating the block hash in Bitcoin-Rust is quite similar to Bitcoin. The project has a relatively low mining difficulty, requiring a hash with just four leading zeros. This design allows for quick and easy mining on standard computers. Unlike Bitcoin, Bitcoin-Rust directly uses an array of transaction hashes instead of a merkle tree.
 
 ### About Network
-Bitcoin-Rust implements a peer-to-peer (P2P) blockchain network. It uses the RPC (Remote Procedure Call) mechanism provided by jsonrpsee for simplification.
+Bitcoin-Rust implements a peer-to-peer (P2P) blockchain network. It uses the RPC (Remote Procedure Call) mechanism provided by (jsonrpsee)[https://github.com/paritytech/jsonrpsee]'s own RPC implementation for simplification.
 
 Nodes in the network can be connected, and they automatically share new transaction information with each other. New nodes will synchronize their blockchain data with existing nodes, ensuring that they have the most up-to-date chain. When a new block is mined, other nodes are notified to update their local copies.
 
