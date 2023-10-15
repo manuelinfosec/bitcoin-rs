@@ -265,7 +265,7 @@ pub async fn start_server() -> Result<(), Box<dyn std::error::Error>> {
         match serde_json::from_value::<String>((*params).into()) {
             // if deserializ
             Ok(node) => rpc_server.add_node(node),
-            Err(_) => (),
+            Err(_) => (),   
         };
     })?;
 
