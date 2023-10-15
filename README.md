@@ -4,7 +4,7 @@ Bitcoin-Rust is an educational implementation of the Bitcoin blockchain in Rust,
 
 This project implements simple blockchain and transactions. Currently, the implementation already has mining, transaction, communication between nodes, and file persistence of blocks and transactions.
 
-The communication between nodes is via RPC based on HTTP, expanding to the more complicated implementation of P2P. The verification based on cryptography, and verification of transactions between nodes is in currenct implementation.
+The communication between nodes is via RPC based on HTTP, with expansion more complicated implementation of Peer-to-Peer (P2P) networking. Verification of transactions between nodes is based on cryptography
 
 ## Usage
 (Coming Soon)
