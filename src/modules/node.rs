@@ -41,10 +41,16 @@ pub fn add_node(address: String) {
 
     // TODO: Sort nodes before writing to local database
 
-    // write all nodes to local database
-    node_db
-        .write(address)
-        .expect("Couldn't write to Node database");
+    // // write all nodes to local database
+    // node_db
+    //     .write(address)
+    //     .expect("Couldn't write to Node database");
+
+    let client: RPCClient = RPCClient::new("http://127.0.0.1:8332".to_string());
+
+    println!("About to be pinging...");
+    let _result = client.add_node(address).expect("Could not ping user");
+    println!("Finished");
 }
 
 /// Perform all due diligence to make the current node blockchain-ready
@@ -64,7 +70,7 @@ fn init_node() {
     // if there are transactions downloaded that is longer than what we have locally, replace local.
 }
 
-pub async fn start_node(address: String) {
+pub async fn start_node(address: &str) -> Result<(), Box<dyn std::error::Error>> {
     // create a runtime to facilitate starting the server asynchrounously
     // let rt = runtime::Runtime::new().expect("Failed to create runtime");
 
@@ -78,8 +84,7 @@ pub async fn start_node(address: String) {
     // thread the local RPC server
 
     // run the async funciton inside the runtime
-    start_server().await;
-    // rt.block_on(async {
-    // println!("Server got to this point?");
-    // });
+    start_server(address).await?;
+
+    Ok(())
 }

@@ -1,8 +1,10 @@
 use std::net::{IpAddr, SocketAddr};
+use std::task::Context;
 
 // use jsonrpc::simple_tcp::TcpTransport;
 use jsonrpc::Client;
 use jsonrpc::{Error, Request, Response};
+use jsonrpsee_server::types::{params, Params};
 use jsonrpsee_server::ServerHandle;
 // use jsonrpsee::server::{RpcModule, Server};
 use jsonrpsee_server::{RpcModule, Server};
@@ -39,7 +41,10 @@ impl BroadCast {
         // interate through all clients
         for client in clients {
             // make RPC call
-            client.ping(args.clone());
+            match client.ping(args.clone()) {
+                Ok(_result) => {}
+                Err(_result) => {}
+            }
         }
     }
 
@@ -66,7 +71,10 @@ impl BroadCast {
         // interate through all clients
         for client in clients {
             // make RPC call
-            client.new_block(block.clone());
+            match client.new_block(block.clone()) {
+                Ok(_result) => _result,
+                Err(_) => {}
+            };
         }
     }
 
@@ -77,7 +85,10 @@ impl BroadCast {
         // interate through all clients
         for client in clients {
             // make RPC call
-            client.add_node(address.clone())?;
+            match client.add_node(address.clone()) {
+                Ok(_result) => _result,
+                Err(_) => {}
+            };
         }
     }
 
@@ -102,7 +113,10 @@ impl BroadCast {
         // interate through all clients
         for client in clients {
             // make RPC call
-            client.new_untransaction(args.clone());
+            match client.new_untransaction(args.clone()) {
+                Ok(_result) => _result,
+                Err(_) => {}
+            };
         }
     }
 
@@ -113,7 +127,10 @@ impl BroadCast {
         // interate through all clients
         for client in clients {
             // make RPC cal
-            client.block_transaction(txn.clone());
+            match client.block_transaction(txn.clone()) {
+                Ok(_result) => _result,
+                Err(_) => {}
+            };
         }
     }
 }
@@ -151,8 +168,7 @@ impl RPCServer {
 
     /// Add a node to the local database
     fn add_node(&self, address: String) {
-        // add node to local database cloning `address` as mutable string
-        add_node(address)
+        add_node(address);
     }
 
     /// Get all transactions from the local database
@@ -242,18 +258,17 @@ impl RPCClient {
         Ok(())
     }
 
-    fn add_node(&self, address: String) -> Result<(), Error> {
+    pub fn add_node(&self, address: String) -> Result<(), Error> {
         // serialize arguments to raw json
         let params: [Box<RawValue>; 1] = [to_raw_value(&address)?];
 
         // construct request with parameters
         let request: Request = self.client.build_request("add_node", &params);
 
-        // send request || doesn't require a respnse
-        self.client.send_request(request)?;
-
         println!("Adding node {address} to network");
-
+        // send request || doesn't require a respnse
+        let response = self.client.send_request(request)?;
+        println!("{response:?}");
         Ok(())
     }
 
@@ -316,7 +331,10 @@ fn get_clients() -> Vec<RPCClient> {
 
 // ip: String, port: u16
 
-pub async fn start_server() -> Result<(), Box<dyn std::error::Error>> {
+pub async fn start_server(_address: &str) -> Result<(), Box<dyn std::error::Error>> {
+    // debug purposes
+    let address = "0.0.0.0:8332";
+
     // initialize RPC Server
     let rpc_server: RPCServer = RPCServer::new();
 
@@ -336,26 +354,37 @@ pub async fn start_server() -> Result<(), Box<dyn std::error::Error>> {
         };
     })?;
 
-    io.register_method("add_node", move |_, params| {
-        // check deserialization results
-        match serde_json::from_value::<String>((*params).into()) {
-            // if deserialization is successful
-            Ok(node) => rpc_server.add_node(node),
+    io.register_method("add_node", move |params: Params, _: &Context| {
+        // parse values to
+        match params.parse::<[Box<RawValue>; 1]>() {
+            Ok(params) => {
+                // Expand the array bounding `RawValue` and deserialize
+                let node: String = serde_json::from_str::<String>(&params[0].get()).unwrap();
+                rpc_server.add_node(node);
+            }
+            // there is bound to be no errors
             Err(_) => (),
         };
+
+        // // check deserialization results
+        // match serde_json::from_value::<String>(params.parse::<serde_json::Value>().unwrap()) {
+        //     // if deserialization is successful
+        //     Ok(node) => rpc_server.add_node(node),
+        //     Err(_) => (),
+        // };
     })?;
 
     io.register_method("get_transactions", move |_, _| {
         rpc_server.get_transactions()
     })?;
 
-    io.register_method("block_transactions", move |_, params| {
+    io.register_method("block_transactions", move |_, _params| {
         // deserialize parameter to Transaction or Vec<Transactions>
     })?;
 
     // Create a server instance and bind
     let server: Server = Server::builder()
-        .build("0.0.0.0:8332".parse::<SocketAddr>()?)
+        .build(address.parse::<SocketAddr>()?)
         .await?;
 
     // start the server

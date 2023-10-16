@@ -24,27 +24,28 @@ impl NodeRoute {
 
     pub fn list() {
         println!("Querying for local nodes...");
-        // // query all local nodes to vector
-        // let nodes: Vec<String> = get_nodes();
-        //
-        // // iterate and write all local nodes to STDOUT
-        // for node in nodes {
-        //     println!("{node}");
-        // }
-        get_nodes();
-        ()
+
+        // query all local nodes to vector
+        let nodes: Vec<String> = get_nodes();
+
+        // iterate and write all local nodes to STDOUT
+        for node in nodes {
+            println!("{node}");
+        }
     }
 
     #[allow(unused_variables)]
     pub async fn start(args: Vec<String>) {
         // collect address from arguments
-        // let addr: String = args[3].to_string();
-        let addr: String = String::new();
+        let addr: &str = &args[3];
 
-        println!("Starting node at {addr}");
+        println!("Binding node at {addr}");
 
-        // start a node
-        start_node(addr).await
+        // bind the node to the specified address and port
+        start_node(addr)
+            .await
+            // instead of `expect`, according to clippy
+            .unwrap_or_else(|_| panic!("Could not bind to {addr}"));
     }
 }
 

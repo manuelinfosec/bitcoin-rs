@@ -160,7 +160,8 @@ impl NodeDB {
     pub fn new() -> NodeDB {
         // perform initialize with database location
         NodeDB {
-            file_path: String::from(format!("{BASEDBPATH}/{NODEFILE}")), // set a default empty string
+            // format! returns `String` instead of `&str``
+            file_path: format!("{BASEDBPATH}/{NODEFILE}"), // set a default empty strig
         }
     }
 }
@@ -171,7 +172,8 @@ impl BlockchainDB {
     pub fn new() -> BlockchainDB {
         // perform initialization with the database location
         BlockchainDB {
-            file_path: String::from(format!("{BASEDBPATH}/{BLOCKCHAINDB}")),
+            // format! returns `String` instead of `&str``
+            file_path: format!("{BASEDBPATH}/{BLOCKCHAINDB}"),
         }
     }
 
@@ -204,7 +206,8 @@ impl AccountDB {
     pub fn new() -> AccountDB {
         // perform initialization with the database location
         AccountDB {
-            file_path: String::from(format!("{BASEDBPATH}/{ACCOUNTDB}")),
+            // format! returns `String` instead of `&str``
+            file_path: format!("{BASEDBPATH}/{ACCOUNTDB}"),
         }
     }
 
@@ -223,7 +226,8 @@ impl TransactionDB {
     pub fn new() -> TransactionDB {
         // perform initialization with the database location
         TransactionDB {
-            file_path: String::from(format!("{BASEDBPATH}/{TXFILE}")),
+            // format! returns `String` instead of `&str``
+            file_path: format!("{BASEDBPATH}/{TXFILE}"),
         }
     }
 
@@ -266,7 +270,8 @@ impl UnTransactionDB {
     pub fn new() -> UnTransactionDB {
         // perform initialization with the database location
         UnTransactionDB {
-            file_path: String::from(format!("{BASEDBPATH}/{UNTXFILE}")),
+            // format! returns `String` instead of `&str`` {
+            file_path: format!("{BASEDBPATH}/{UNTXFILE}"),
         }
     }
 
