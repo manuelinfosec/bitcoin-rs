@@ -23,7 +23,7 @@ pub fn get_nodes() -> Vec<String> {
 }
 
 /// Add a node to the local database
-pub fn add_node(address: String) {
+pub fn write_node(address: String) {
     // Initialize local database API
     let node_db: NodeDB = NodeDB::new();
 
@@ -48,9 +48,7 @@ pub fn add_node(address: String) {
 
     let client: RPCClient = RPCClient::new("http://127.0.0.1:8332".to_string());
 
-    println!("About to be pinging...");
     let _result = client.add_node(address).expect("Could not ping user");
-    println!("Finished");
 }
 
 /// Perform all due diligence to make the current node blockchain-ready

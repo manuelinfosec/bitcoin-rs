@@ -4,7 +4,7 @@ use std::task::Context;
 // use jsonrpc::simple_tcp::TcpTransport;
 use jsonrpc::Client;
 use jsonrpc::{Error, Request, Response};
-use jsonrpsee_server::types::{params, Params};
+use jsonrpsee_server::types::{params, ErrorObjectOwned, Params};
 use jsonrpsee_server::ServerHandle;
 // use jsonrpsee::server::{RpcModule, Server};
 use jsonrpsee_server::{RpcModule, Server};
@@ -13,7 +13,7 @@ use serde_json::value::{to_raw_value, RawValue};
 
 use crate::database::{BaseDB, BlockchainDB, TransactionDB, UnTransactionDB};
 use crate::modules::blockchain::Block;
-use crate::modules::node::{add_node, get_nodes};
+use crate::modules::node::{get_nodes, write_node};
 use crate::modules::transactions::Transaction;
 
 // represent the current node as a RPC Server ready to receive connections
@@ -168,7 +168,7 @@ impl RPCServer {
 
     /// Add a node to the local database
     fn add_node(&self, address: String) {
-        add_node(address);
+        write_node(address);
     }
 
     /// Get all transactions from the local database
@@ -354,24 +354,17 @@ pub async fn start_server(_address: &str) -> Result<(), Box<dyn std::error::Erro
         };
     })?;
 
-    io.register_method("add_node", move |params: Params, _: &Context| {
-        // parse values to
+    io.register_method("add_node", move |params: Params, _| {
+        // parse values to RawValue
         match params.parse::<[Box<RawValue>; 1]>() {
             Ok(params) => {
                 // Expand the array bounding `RawValue` and deserialize
-                let node: String = serde_json::from_str::<String>(&params[0].get()).unwrap();
+                let node = serde_json::from_str::<String>(&params[0].get()).unwrap();
                 rpc_server.add_node(node);
             }
             // there is bound to be no errors
             Err(_) => (),
         };
-
-        // // check deserialization results
-        // match serde_json::from_value::<String>(params.parse::<serde_json::Value>().unwrap()) {
-        //     // if deserialization is successful
-        //     Ok(node) => rpc_server.add_node(node),
-        //     Err(_) => (),
-        // };
     })?;
 
     io.register_method("get_transactions", move |_, _| {
