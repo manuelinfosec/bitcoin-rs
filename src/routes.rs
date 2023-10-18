@@ -17,7 +17,7 @@ impl NodeRoute {
         let mut node: String = args[3].clone();
 
         // add the node locally
-        node::add_node(node);
+        node::write_node(node);
 
         // broadcast to all local nodes
     }
