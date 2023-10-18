@@ -14,7 +14,7 @@ pub struct TransactionRoute {}
 impl NodeRoute {
     #[allow(unused_variables)]
     pub fn add(args: Vec<String>) {
-        let mut node: String = args[3].clone();
+        let node: String = args[3].clone();
 
         // add the node locally
         node::write_node(node);
