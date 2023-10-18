@@ -39,7 +39,7 @@ pub trait BaseDB {
         };
 
         // handle errors when reading the file
-        if let Err(_) = file.read_to_string(&mut raw) {
+        if file.read_to_string(&mut raw).is_err() {
             // return an empty vector
             return Vec::new();
         }

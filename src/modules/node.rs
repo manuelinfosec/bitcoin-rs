@@ -1,13 +1,8 @@
 use database::{BaseDB, NodeDB};
-// use tokio::runtime;
 
 use crate::database;
 use crate::p2p::{start_server, RPCClient};
 
-/// Get all nodes from local database
-// pub fn get_nodes() -> Vec<String> {
-//     NodeDB::new().find_all()
-// }
 
 pub fn get_nodes() -> Vec<String> {
     let client: RPCClient = RPCClient::new("http://127.0.0.1:8332".to_string());
@@ -39,16 +34,10 @@ pub fn write_node(address: String) {
         address.insert_str(0, schema);
     }
 
-    // TODO: Sort nodes before writing to local database
-
     // // write all nodes to local database
-    // node_db
-    //     .write(address)
-    //     .expect("Couldn't write to Node database");
-
-    let client: RPCClient = RPCClient::new("http://127.0.0.1:8332".to_string());
-
-    let _result = client.add_node(address).expect("Could not ping user");
+    node_db
+        .write(address)
+        .expect("Couldn't write to Node database");
 }
 
 /// Perform all due diligence to make the current node blockchain-ready

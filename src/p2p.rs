@@ -1,10 +1,9 @@
 use std::net::{IpAddr, SocketAddr};
-use std::task::Context;
 
 // use jsonrpc::simple_tcp::TcpTransport;
 use jsonrpc::Client;
 use jsonrpc::{Error, Request, Response};
-use jsonrpsee_server::types::{params, ErrorObjectOwned, Params};
+use jsonrpsee_server::types::Params;
 use jsonrpsee_server::ServerHandle;
 // use jsonrpsee::server::{RpcModule, Server};
 use jsonrpsee_server::{RpcModule, Server};
@@ -126,11 +125,10 @@ impl BroadCast {
 
         // interate through all clients
         for client in clients {
-            // make RPC cal
-            match client.block_transaction(txn.clone()) {
-                Ok(_result) => _result,
-                Err(_) => {}
-            };
+            // make RPC call
+            if let Ok(result) = client.block_transaction(txn) {
+                result
+            }
         }
     }
 }
@@ -156,7 +154,7 @@ impl RPCServer {
     }
 
     /// Add a new block to the local database
-    fn new_block<T: Serialize + DeserializeOwned>(&self, block: T) -> () {
+    fn new_block<T: Serialize + DeserializeOwned>(&self, block: T) {
         // insert a new block to the blockchain database
         BlockchainDB::new().insert(block).unwrap();
 
@@ -179,13 +177,13 @@ impl RPCServer {
     }
 
     /// Add an un-mined transaction to the local database
-    fn new_untransaction<T: Serialize + DeserializeOwned>(&self, untxns: T) -> () {
+    fn new_untransaction<T: Serialize + DeserializeOwned>(&self, untxns: T) {
         // TODO: What if it fails to insert the transaction?
         UnTransactionDB::new().insert(untxns).unwrap()
     }
 
     /// Write a new mined transaction to the local database
-    fn block_transaction<T: Serialize + DeserializeOwned>(&self, txns: T) -> () {
+    fn block_transaction<T: Serialize + DeserializeOwned>(&self, txns: T) {
         println!("Received new block transaction!");
 
         // TODO: What if it fails to write a transaction?
@@ -199,7 +197,7 @@ impl RPCClient {
         let stripped_node: String = node.strip_prefix("http://").unwrap_or(&node).to_string();
 
         // split the node address `127.0.0.1:8000` to `127.0.0.1` and `8080`
-        let address_split: Vec<&str> = stripped_node.split(":").collect();
+        let address_split: Vec<&str> = stripped_node.split(':').collect();
 
         // parse String to IP address
         let addr: IpAddr = address_split[0].parse().unwrap();
@@ -345,26 +343,20 @@ pub async fn start_server(_address: &str) -> Result<(), Box<dyn std::error::Erro
     io.register_method("ping", move |_, _| rpc_server.ping())?;
     io.register_method("get_blockchain", move |_, _| rpc_server.get_blockchain())?;
 
-    io.register_method("new_block", move |_, params| {
-        // check deserialization results
-        match serde_json::from_value::<Block>((*params).into()) {
-            // if deserialization is successful
-            Ok(block) => rpc_server.new_block(block),
-            Err(_) => (),
-        };
+    io.register_method("new_block", move |params: Params, _| {
+        // parse values to RawValue within a condition
+        if let Ok(params) = params.parse::<[Box<RawValue>; 1]>() {
+            let block = serde_json::from_str::<Block>(params[0].get()).unwrap();
+            rpc_server.new_block(block);
+        }
     })?;
 
     io.register_method("add_node", move |params: Params, _| {
-        // parse values to RawValue
-        match params.parse::<[Box<RawValue>; 1]>() {
-            Ok(params) => {
-                // Expand the array bounding `RawValue` and deserialize
-                let node = serde_json::from_str::<String>(&params[0].get()).unwrap();
-                rpc_server.add_node(node);
-            }
-            // there is bound to be no errors
-            Err(_) => (),
-        };
+        // parse values to RawValue within a condition
+        if let Ok(params) = params.parse::<[Box<RawValue>; 1]>() {
+            let node = serde_json::from_str::<String>(params[0].get()).unwrap();
+            rpc_server.add_node(node);
+        }
     })?;
 
     io.register_method("get_transactions", move |_, _| {
